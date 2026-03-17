@@ -244,9 +244,8 @@ const BrandIcon = ({ name, size = 36 }) => {
     ),
   };
 
-  // Fallback: brand-blue initial badge
   const fallback = () => {
-    const palette = ["#1429D0", "#0E7FDD", "#1E3A8A", "#262832"];
+    const palette = ["#1429D0","#0E7FDD","#1E3A8A","#262832"];
     const bg = palette[name.charCodeAt(0) % palette.length];
     const initials = name.split(" ").map(w => w[0]).slice(0, 2).join("").toUpperCase();
     return (
@@ -275,38 +274,68 @@ function CompanyCard({ company }) {
       onMouseLeave={() => setHov(false)}
       style={{
         display: "inline-flex", alignItems: "center", gap: "0.85rem",
-        background: hov ? "#fff" : "rgba(255,255,255,0.92)",
-        border: `1.5px solid ${hov ? "rgba(20,41,208,0.35)" : "rgba(20,41,208,0.12)"}`,
-        borderRadius: 14, padding: "0.75rem 1.1rem",
+        background: hov ? "#fff" : "rgba(255,255,255,0.95)",
+        border: `1.5px solid ${hov ? "rgba(20,41,208,0.4)" : "rgba(20,41,208,0.1)"}`,
+        borderRadius: 16,
+        padding: "0.75rem 1.2rem 0.75rem 0.75rem",
         marginRight: "0.85rem", flexShrink: 0,
         cursor: "pointer", transition: "all .22s ease",
-        transform: hov ? "translateY(-4px)" : "none",
+        transform: hov ? "translateY(-4px) scale(1.01)" : "none",
         boxShadow: hov
-          ? "0 12px 32px rgba(20,41,208,0.14), 0 2px 8px rgba(0,0,0,0.06)"
-          : "0 2px 8px rgba(20,41,208,0.06)",
-        minWidth: 165,
+          ? "0 16px 40px rgba(20,41,208,0.13), 0 2px 8px rgba(0,0,0,0.05)"
+          : "0 1px 4px rgba(20,41,208,0.05), 0 0 0 0px rgba(20,41,208,0)",
+        minWidth: 210,
       }}
     >
+      {/* Logo box */}
       <div style={{
-        width: 40, height: 40, borderRadius: 10,
-        background: "#fff", border: "1px solid rgba(20,41,208,0.10)",
+        width: 46, height: 46, borderRadius: 12,
+        background: hov ? "rgba(20,41,208,0.04)" : "#F8FAFF",
+        border: `1px solid ${hov ? "rgba(20,41,208,0.18)" : "rgba(20,41,208,0.08)"}`,
         display: "flex", alignItems: "center", justifyContent: "center",
         flexShrink: 0, overflow: "hidden",
-        boxShadow: "0 1px 4px rgba(0,0,0,0.08)",
+        transition: "all .22s ease",
       }}>
-        <BrandIcon name={company.name} size={40} />
+        <BrandIcon name={company.name} size={44} />
       </div>
+
+      {/* Text */}
       <div>
         <div style={{
           fontFamily: "'DM Sans', sans-serif", fontWeight: 700,
-          fontSize: "0.86rem", color: "#161619",
-          lineHeight: 1.3, whiteSpace: "nowrap",
+          fontSize: "0.875rem", color: "#161619",
+          lineHeight: 1.25, whiteSpace: "nowrap",
         }}>{company.name}</div>
         <div style={{
-          fontSize: "0.71rem", color: "#36383e",
-          marginTop: "0.15rem", whiteSpace: "nowrap", fontWeight: 500,
+          fontSize: "0.71rem",
+          color: hov ? "#1429D0" : "#6B7280",
+          marginTop: "0.2rem", whiteSpace: "nowrap", fontWeight: 500,
+          transition: "color .22s ease",
         }}>{company.role}</div>
       </div>
+    </div>
+  );
+}
+
+// ── Stat pill ─────────────────────────────────────────────────────────────────
+function StatPill({ value, label }) {
+  return (
+    <div style={{
+      display: "inline-flex", flexDirection: "column", alignItems: "center",
+      padding: "0.9rem 2rem",
+      background: "rgba(20,41,208,0.04)",
+      border: "1px solid rgba(20,41,208,0.12)",
+      borderRadius: 14,
+    }}>
+      <span style={{
+        fontFamily: "'DM Sans', sans-serif",
+        fontSize: "1.6rem", fontWeight: 900, color: "#1429D0",
+        lineHeight: 1, letterSpacing: "-0.03em",
+      }}>{value}</span>
+      <span style={{
+        fontSize: "0.75rem", color: "#6B7280", fontWeight: 500,
+        marginTop: "0.25rem", whiteSpace: "nowrap",
+      }}>{label}</span>
     </div>
   );
 }
@@ -323,97 +352,140 @@ export default function HiringPartners() {
 
         .hp-section {
           background: #ffffff;
-          padding: 5rem 0 4.5rem;
+          padding: 4.5rem 0 4.5rem;
           overflow: hidden;
           position: relative;
           border-top: 1px solid rgba(20,41,208,0.08);
           border-bottom: 1px solid rgba(20,41,208,0.08);
           font-family: 'DM Sans', sans-serif;
         }
-        .hp-blob-tl {
-          position: absolute; top: -60px; left: -60px;
-          width: 360px; height: 360px; border-radius: 50%;
-          background: radial-gradient(circle, rgba(20,41,208,0.06) 0%, transparent 70%);
+
+        /* Background mesh */
+        .hp-bg-mesh {
+          position: absolute;
+          inset: 0;
+          background:
+            radial-gradient(ellipse 55% 40% at 15% 20%, rgba(20,41,208,0.05) 0%, transparent 60%),
+            radial-gradient(ellipse 40% 35% at 85% 80%, rgba(14,127,221,0.05) 0%, transparent 60%),
+            radial-gradient(ellipse 30% 50% at 50% 50%, rgba(20,41,208,0.025) 0%, transparent 70%);
           pointer-events: none;
         }
-        .hp-blob-br {
-          position: absolute; bottom: -60px; right: -60px;
-          width: 300px; height: 300px; border-radius: 50%;
-          background: radial-gradient(circle, rgba(14,127,221,0.06) 0%, transparent 70%);
+
+        /* Dot grid pattern */
+        .hp-dot-grid {
+          position: absolute;
+          inset: 0;
+          background-image: radial-gradient(circle, rgba(20,41,208,0.07) 1px, transparent 1px);
+          background-size: 28px 28px;
+          mask-image: radial-gradient(ellipse 80% 70% at 50% 50%, black 30%, transparent 100%);
           pointer-events: none;
         }
+
+        /* Edge fades */
         .hp-fade-left {
-          position: absolute; top: 0; bottom: 0; left: 0; width: 120px;
-          background: linear-gradient(90deg, rgba(255,255,255,0.98), transparent);
+          position: absolute; top: 0; bottom: 0; left: 0; width: 200px;
+          background: linear-gradient(90deg, rgba(255,255,255,1) 40%, transparent);
           pointer-events: none; z-index: 3;
         }
         .hp-fade-right {
-          position: absolute; top: 0; bottom: 0; right: 0; width: 120px;
-          background: linear-gradient(270deg, rgba(255,255,255,0.98), transparent);
+          position: absolute; top: 0; bottom: 0; right: 0; width: 200px;
+          background: linear-gradient(270deg, rgba(255,255,255,1) 40%, transparent);
           pointer-events: none; z-index: 3;
         }
+
+        /* Header */
         .hp-header {
-          text-align: center; margin-bottom: 3rem;
-          position: relative; z-index: 4; padding: 0 5%;
+          text-align: center;
+          margin-bottom: 4rem;
+          position: relative; z-index: 4;
+          padding: 0 5%;
         }
+
         .hp-label-row {
           display: flex; align-items: center; justify-content: center;
-          gap: 12px; margin-bottom: 14px;
+          gap: 10px; margin-bottom: 1.1rem;
         }
-        .hp-label-line { width: 22px; height: 2px; background: #1429D0; border-radius: 2px; display: inline-block; }
-        .hp-label { color: #1429D0; font-size: 0.72rem; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; }
+        .hp-label-line {
+          width: 28px; height: 2px;
+          background: linear-gradient(90deg, transparent, #1429D0);
+          border-radius: 2px;
+        }
+        .hp-label-line.right {
+          background: linear-gradient(90deg, #1429D0, transparent);
+        }
+        .hp-label {
+          color: #1429D0; font-size: 0.72rem; font-weight: 700;
+          letter-spacing: 2.5px; text-transform: uppercase;
+        }
+
         .hp-heading {
-          font-size: clamp(1.7rem, 4vw, 2.8rem); font-weight: 900;
-          color: #161619; letter-spacing: -0.03em; line-height: 1.1; margin-bottom: 0.9rem;
+          font-size: clamp(2rem, 4vw, 2.9rem);
+          font-weight: 900; color: #161619;
+          letter-spacing: -0.035em; line-height: 1.1;
+          margin-bottom: 1rem;
         }
         .hp-heading span {
-          background: linear-gradient(135deg, #1429D0, #0E7FDD);
-          -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+          background: linear-gradient(135deg, #1429D0 0%, #0E7FDD 100%);
+          -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+          background-clip: text;
         }
-        .hp-subtext { font-size: 0.95rem; color: #36383e; line-height: 1.7; max-width: 500px; margin: 0 auto; }
-        .hp-carousel-wrap { position: relative; z-index: 4; }
-        .hp-row { overflow: hidden; margin-bottom: 0.85rem; }
-        .hp-row:last-child { margin-bottom: 0; }
+        .hp-subtext {
+          font-size: 1rem; color: "#6B7280";
+          line-height: 1.7; max-width: 480px; margin: 0 auto 0;
+          color: #6B7280;
+        }
 
-        @keyframes marqueeLeft  { from { transform: translateX(0);    } to { transform: translateX(-50%); } }
-        @keyframes marqueeRight { from { transform: translateX(-50%); } to { transform: translateX(0);    } }
-        .hp-track { display: flex; width: max-content; padding-left: 0.85rem; }
+        /* Carousel */
+        .hp-carousel-wrap {
+          position: relative; z-index: 4;
+        }
+        .hp-row {
+          overflow: hidden;
+          margin-bottom: 0.9rem;
+          /* Give vertical breathing room so hover shadows aren't clipped */
+          padding: 10px 0;
+          margin-top: -10px;
+          margin-bottom: calc(0.9rem - 10px);
+        }
+        .hp-row:last-child { margin-bottom: -10px; }
 
+        @keyframes marqueeLeft {
+          from { transform: translateX(0); }
+          to   { transform: translateX(-50%); }
+        }
+        @keyframes marqueeRight {
+          from { transform: translateX(-50%); }
+          to   { transform: translateX(0); }
+        }
+        .hp-track {
+          display: flex; width: max-content; padding-left: 0.85rem;
+        }
+
+        /* Stat strip */
         .hp-stat-strip {
-          text-align: center; margin-top: 2.5rem;
-          font-size: 0.88rem; color: #36383e;
-          position: relative; z-index: 4; padding: 0 5%; line-height: 2;
-        }
-        .hp-stat-strip strong { color: #1429D0; font-weight: 700; }
-
-        /* ── Tablet (≤ 768px) ── */
-        @media (max-width: 768px) {
-          .hp-section    { padding: 4rem 0 3.5rem; }
-          .hp-heading    { font-size: clamp(1.5rem, 5vw, 2rem); }
-          .hp-subtext    { font-size: 0.88rem; }
-          .hp-fade-left, .hp-fade-right { width: 60px; }
-          .hp-stat-strip { font-size: 0.82rem; }
-          .hp-blob-tl, .hp-blob-br { width: 200px; height: 200px; }
-          .hp-header     { margin-bottom: 2.2rem; }
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 1rem;
+          margin-top: 2.5rem;
+          padding: 0 5%;
+          position: relative; z-index: 4;
+          flex-wrap: wrap;
         }
 
-        /* ── Mobile (≤ 480px) ── */
-        @media (max-width: 480px) {
-          .hp-section    { padding: 3rem 0 2.5rem; }
-          .hp-header     { margin-bottom: 1.8rem; }
-          .hp-heading    { font-size: 1.4rem; letter-spacing: -0.02em; }
-          .hp-subtext    { font-size: 0.82rem; max-width: 88%; }
-          .hp-label      { font-size: 0.65rem; letter-spacing: 1.5px; }
-          .hp-fade-left, .hp-fade-right { width: 36px; }
-          .hp-row        { margin-bottom: 0.6rem; }
-          .hp-stat-strip { font-size: 0.76rem; margin-top: 1.6rem; }
-          .hp-blob-tl, .hp-blob-br { display: none; }
+        .hp-stat-divider {
+          width: 1px; height: 36px;
+          background: rgba(20,41,208,0.15);
+        }
+
+        @media (max-width: 600px) {
+          .hp-stat-divider { display: none; }
         }
       `}</style>
 
       <section id="hiring-partners" ref={ref} className="hp-section">
-        <div className="hp-blob-tl" />
-        <div className="hp-blob-br" />
+        <div className="hp-bg-mesh" />
+        <div className="hp-dot-grid" />
         <div className="hp-fade-left" />
         <div className="hp-fade-right" />
 
@@ -429,12 +501,14 @@ export default function HiringPartners() {
           <div className="hp-label-row">
             <span className="hp-label-line" />
             <span className="hp-label">Our Hiring Partners</span>
-            <span className="hp-label-line" />
+            <span className="hp-label-line right" />
           </div>
+
           <h2 className="hp-heading">
             Our Graduates Work at{" "}
             <span>Dream Companies</span>
           </h2>
+
           <p className="hp-subtext">
             180+ companies actively hiring DataPreneur graduates across data, AI, cloud and finance roles.
           </p>
@@ -476,7 +550,18 @@ export default function HiringPartners() {
           })}
         </div>
 
-        {/* Stat strip */}
+        {/* Stat strip — pills instead of plain text */}
+        {/* <div
+          className="hp-stat-strip"
+          style={{ opacity: inView ? 1 : 0, transition: "opacity .6s .5s" }}
+        >
+          <StatPill value="180+" label="Hiring Partners" />
+          <span className="hp-stat-divider" />
+          <StatPill value="94%" label="Placement Rate" />
+          <span className="hp-stat-divider" />
+          <StatPill value="4+" label="Domains: AI · Data · Cloud · Finance" />
+        </div> */}
+         {/* Stat strip */}
         <div
           className="hp-stat-strip"
           style={{ opacity: inView ? 1 : 0, transition: "opacity .6s .5s" }}

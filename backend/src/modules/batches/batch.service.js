@@ -1,3 +1,4 @@
+import mongoose from "mongoose";
 import Batch from "./batch.model.js";
 import Course from "../courses/course.model.js";
 import User from "../users/user.model.js";
@@ -45,7 +46,7 @@ export const createBatch = async (batchData, adminId) => {
     startDate,
     endDate,
     capacity,
-    createdBy: adminId,
+    ...(adminId && adminId !== "admin-env" && mongoose.Types.ObjectId.isValid(adminId) ? { createdBy: adminId } : {}),
   });
 
   return batch;

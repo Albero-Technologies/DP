@@ -188,9 +188,9 @@ export default function CTASection() {
             </div>
 
             <h2 style={{ fontSize: "clamp(1.7rem, 3vw, 2.6rem)", fontWeight: 900, color: "#161619", lineHeight: 1.15, letterSpacing: "-0.03em", margin: 0 }}>
-              Accelerate your career with industry-leading programs.{" "}
-              <span style={{ color: "#1429D0" }}>Join 12,000+ professionals</span>{" "}
-              who secured roles at <span style={{ color: "#1429D0" }}>top-tier companies</span>.
+              Transform your career with programs{" "}
+              <span style={{ color: "#1429D0" }}>that helped 12,000+</span>{" "}
+             professionals land top roles.
             </h2>
 
             <p style={{ fontSize: "1rem", color: "#36383e", lineHeight: 1.75, margin: 0 }}>

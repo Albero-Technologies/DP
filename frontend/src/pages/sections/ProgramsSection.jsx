@@ -1,19 +1,17 @@
 import { useState, useRef } from "react";
-import { ArrowRight, Zap } from "lucide-react";
-import { 
-  FaPython, FaDatabase, FaChartLine, FaChartBar,
-  FaFire, FaSearch, FaHdd, FaLink, FaBrain 
+import { ArrowRight, Zap, Users, Clock, Star } from "lucide-react";
+import {
+  FaPython, FaDatabase, FaFire, FaSearch, FaHdd, FaLink, FaBrain
 } from 'react-icons/fa';
 import { FiCloud, FiGrid, FiBox, FiCpu, FiBarChart2, FiActivity } from 'react-icons/fi';
 
 const programsData = [
   {
-    title: "Data Analytics",
-    badge: "Data Tools & Visualization",
-    heading: "Data Analytics",
-    tagline: "Launch your analytics career in just 6 months",
-    description:
-      "Master Excel, SQL, Python, Tableau, and Power BI by solving real business problems. Walk out with a portfolio that proves you can deliver insights, not just run queries.",
+    title:       "Data Analytics",
+    badge:       "Data Tools & Visualization",
+    heading:     "Data Analytics",
+    tagline:     "Launch your analytics career in just 6 months",
+    description: "Master Excel, SQL, Python, Tableau, and Power BI by solving real business problems. Walk out with a portfolio that proves you can deliver insights, not just run queries.",
     tools: [
       { name: "Python",   icon: <FaPython /> },
       { name: "SQL",      icon: <FaDatabase /> },
@@ -21,33 +19,36 @@ const programsData = [
       { name: "Power BI", icon: <FiActivity /> },
       { name: "Excel",    icon: <FiGrid /> },
     ],
-    level: "Beginner to Advanced",
+    meta:    { duration: "6 months", students: "1,200+", rating: "4.9" },
+    level:   "Beginner to Advanced",
     popular: true,
-    gradient: "linear-gradient(135deg, #1429D0 0%, #0E7FDD 100%)",
+    /* Soft blue-tinted wash — mimics the orange reference but in brand blue */
+    wash: "linear-gradient(105deg, rgba(20,41,208,0.08) 0%, rgba(20,41,208,0.14) 100%)",
+    img:  "https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=1400&q=75",
   },
   {
-    title: "Business Analytics",
-    badge: "Business Intelligence",
-    heading: "Business Analytics",
-    tagline: "Transform data into business value",
-    description:
-      "Learn data-driven decision making, KPI frameworks, and business strategy with analytics.",
+    title:       "Business Analytics",
+    badge:       "Business Intelligence",
+    heading:     "Business Analytics",
+    tagline:     "Transform data into business value",
+    description: "Learn data-driven decision making, KPI frameworks, and business strategy with analytics. Build dashboards that executives actually use to make decisions.",
     tools: [
       { name: "Excel",    icon: <FiGrid /> },
       { name: "Power BI", icon: <FiActivity /> },
       { name: "SQL",      icon: <FaDatabase /> },
     ],
-    level: "Beginner to Advanced",
+    meta:    { duration: "5 months", students: "850+", rating: "4.8" },
+    level:   "Beginner to Advanced",
     popular: false,
-    gradient: "linear-gradient(135deg, #0E7FDD 0%, #1E3A8A 100%)",
+    wash: "linear-gradient(105deg, rgba(14,127,221,0.07) 0%, rgba(14,127,221,0.13) 100%)",
+    img:  "https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=1400&q=75",
   },
   {
-    title: "Data Science and AI",
-    badge: "AI & Machine Learning",
-    heading: "Data Science and AI",
-    tagline: "Master AI from fundamentals to deployment",
-    description:
-      "The complete journey — from Python fundamentals to neural networks, NLP, generative AI, and deployment.",
+    title:       "Data Science and AI",
+    badge:       "AI & Machine Learning",
+    heading:     "Data Science and AI",
+    tagline:     "Master AI from fundamentals to deployment",
+    description: "The complete journey — from Python fundamentals to neural networks, NLP, generative AI, and deployment on cloud platforms used by industry leaders.",
     tools: [
       { name: "TensorFlow", icon: <FiCpu /> },
       { name: "PyTorch",    icon: <FaFire /> },
@@ -55,43 +56,47 @@ const programsData = [
       { name: "AWS",        icon: <FiCloud /> },
       { name: "BERT",       icon: <FaBrain /> },
     ],
-    level: "Beginner to Advanced",
+    meta:    { duration: "8 months", students: "620+", rating: "4.9" },
+    level:   "Beginner to Advanced",
     popular: false,
-    gradient: "linear-gradient(135deg, #161619 0%, #1429D0 100%)",
+    wash: "linear-gradient(105deg, rgba(20,41,208,0.1) 0%, rgba(30,58,138,0.15) 100%)",
+    img:  "https://images.unsplash.com/photo-1677442135703-1787eea5ce01?w=1400&q=75",
   },
   {
-    title: "Agentic AI & Prompt Eng.",
-    badge: "Gen AI",
-    heading: "Agentic AI & Prompt Engineering",
-    tagline: "Build the future of AI automation",
-    description:
-      "Build AI agents, automation workflows, and advanced prompting systems using the latest LLM tooling.",
+    title:       "Agentic AI & Prompt Eng.",
+    badge:       "Gen AI",
+    heading:     "Agentic AI & Prompt Engineering",
+    tagline:     "Build the future of AI automation",
+    description: "Build AI agents, automation workflows, and advanced prompting systems using the latest LLM tooling. From RAG pipelines to production-grade agents.",
     tools: [
       { name: "OpenAI",    icon: <FaBrain /> },
       { name: "LangChain", icon: <FaLink /> },
       { name: "RAG",       icon: <FaSearch /> },
       { name: "Vector DB", icon: <FaHdd /> },
     ],
-    level: "Beginner to Advanced",
+    meta:    { duration: "4 months", students: "430+", rating: "4.9" },
+    level:   "Intermediate",
     popular: false,
-    gradient: "linear-gradient(135deg, #0E7FDD 0%, #1429D0 100%)",
+    wash: "linear-gradient(105deg, rgba(14,127,221,0.08) 0%, rgba(20,41,208,0.14) 100%)",
+    img:  "https://images.unsplash.com/photo-1620712943543-bcc4688e7485?w=1400&q=75",
   },
   {
-    title: "Investment Banking",
-    badge: "Finance & Valuation",
-    heading: "Investment Banking",
-    tagline: "Master financial modeling and deals",
-    description:
-      "Master financial modeling, valuation, M&A, and deal structuring for top finance roles.",
+    title:       "Investment Banking",
+    badge:       "Finance & Valuation",
+    heading:     "Investment Banking",
+    tagline:     "Master financial modeling and deals",
+    description: "Master financial modeling, valuation, M&A, and deal structuring for top finance roles. Land roles at bulge-bracket banks and elite boutiques.",
     tools: [
       { name: "Excel",    icon: <FiGrid /> },
       { name: "Power BI", icon: <FiActivity /> },
       { name: "SQL",      icon: <FaDatabase /> },
       { name: "Python",   icon: <FaPython /> },
     ],
-    level: "Beginner to Advanced",
+    meta:    { duration: "6 months", students: "540+", rating: "4.8" },
+    level:   "Beginner to Advanced",
     popular: false,
-    gradient: "linear-gradient(135deg, #1E3A8A 0%, #0E7FDD 100%)",
+    wash: "linear-gradient(105deg, rgba(30,58,138,0.07) 0%, rgba(14,127,221,0.13) 100%)",
+    img:  "https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?w=1400&q=75",
   },
 ];
 
@@ -109,7 +114,7 @@ export default function ProgramsSection() {
     setAnimKey(k => k + 1);
   };
 
-  const prog = programsData[activeIndex];
+  const prog      = programsData[activeIndex];
   const animClass = direction === "forward" ? "anim-forward" : "anim-back";
 
   return (
@@ -121,8 +126,7 @@ export default function ProgramsSection() {
           padding: 90px 0;
           background: #ffffff;
           font-family: 'DM Sans', sans-serif;
-          position: relative;
-          overflow: hidden;
+          position: relative; overflow: hidden;
         }
         .prog-blob-tr {
           position: absolute; top: -80px; right: -60px;
@@ -136,13 +140,14 @@ export default function ProgramsSection() {
           background: radial-gradient(circle, rgba(14,127,221,0.06) 0%, transparent 70%);
           pointer-events: none;
         }
+
         .prog-container {
           max-width: 80rem; margin: 0 auto;
           padding: 0 24px; width: 100%;
           position: relative; z-index: 1;
         }
 
-        /* Header */
+        /* ── Header ── */
         .prog-header { margin-bottom: 48px; }
         .prog-label-row { display: flex; align-items: center; gap: 12px; margin-bottom: 14px; }
         .prog-label-line { width: 22px; height: 2px; background: #1429D0; border-radius: 2px; }
@@ -153,7 +158,7 @@ export default function ProgramsSection() {
         }
         .prog-main-heading span { color: #1429D0; }
 
-        /* Card shell */
+        /* ── Card shell ── */
         .prog-card {
           display: flex;
           background: #fff;
@@ -161,10 +166,9 @@ export default function ProgramsSection() {
           box-shadow: 0 20px 60px rgba(20,41,208,0.11);
           overflow: hidden;
           border: 1px solid rgba(20,41,208,0.09);
-          min-height: 520px;
         }
 
-        /* Sidebar */
+        /* ── Sidebar ── */
         .prog-sidebar {
           width: 270px; min-width: 270px;
           background: #F2F5FF;
@@ -182,34 +186,66 @@ export default function ProgramsSection() {
           user-select: none;
         }
         .prog-menu-item:last-child { border-bottom: none; }
-        .prog-menu-item:hover { background: rgba(20,41,208,0.06); color: #1429D0; }
+        .prog-menu-item:hover:not(.active) { background: rgba(20,41,208,0.06); color: #1429D0; }
         .prog-menu-item.active {
           background: #fff; border-left-color: #1429D0;
           color: #161619; font-weight: 700;
         }
         .prog-menu-arrow { transition: color 0.22s, transform 0.22s; color: #BFD2FF; flex-shrink: 0; }
         .prog-menu-item.active .prog-menu-arrow,
-        .prog-menu-item:hover .prog-menu-arrow { color: #1429D0; transform: translateX(4px); }
+        .prog-menu-item:hover:not(.active) .prog-menu-arrow { color: #1429D0; transform: translateX(4px); }
 
-        /* Content wrapper with gradient bg */
+        /* ── Content wrap ── */
         .prog-content-wrap { flex: 1; position: relative; overflow: hidden; }
 
-        .prog-content-bg {
+        /* ─── Image layer: full bleed, desaturated slightly ─── */
+        .prog-bg-img {
           position: absolute; inset: 0;
-          opacity: 0.13;
+          background-size: cover;
+          background-position: center right;
+          filter: saturate(0.7) brightness(1.05);
+          transition: opacity 0.4s ease;
+        }
+
+        /* ─── Soft colour wash — like the orange reference but blue ─── */
+        /* Left ~55%: nearly opaque white so text is crisp                */
+        /* Middle: soft transition into the tinted image                  */
+        /* Right: image visible through the brand-blue tint               */
+        .prog-wash {
+          position: absolute; inset: 0;
+          /* Solid white on the left fading to transparent, then tint on right */
+          background: linear-gradient(
+            100deg,
+            #ffffff 0%,
+            #ffffff 38%,
+            rgba(255,255,255,0.85) 52%,
+            rgba(255,255,255,0.30) 70%,
+            rgba(255,255,255,0.05) 100%
+          );
           transition: background 0.55s ease;
+          pointer-events: none;
         }
-        .prog-content-frost {
+        /* Per-program tint overlaid on top of the wash on the right side */
+        .prog-tint {
           position: absolute; inset: 0;
-          background: rgba(255,255,255,0.84);
+          background: linear-gradient(
+            100deg,
+            transparent 40%,
+            var(--prog-tint-start) 65%,
+            var(--prog-tint-end) 100%
+          );
+          pointer-events: none;
+          transition: opacity 0.4s ease;
         }
 
+        /* ── Content text ── */
         .prog-content {
-          position: relative; z-index: 1;
-          padding: 48px; height: 100%;
+          position: relative; z-index: 2;
+          padding: 48px;
+          height: 100%;
         }
 
-        /* Direction animations */
+        /* Animations */
         @keyframes slideFromRight {
           from { opacity: 0; transform: translateX(60px); }
           to   { opacity: 1; transform: translateX(0); }
@@ -220,8 +256,6 @@ export default function ProgramsSection() {
         }
         .anim-forward { animation: slideFromRight 0.4s cubic-bezier(.25,.8,.25,1) both; }
         .anim-back    { animation: slideFromLeft  0.4s cubic-bezier(.25,.8,.25,1) both; }
-
-        /* Stagger rows */
         .prog-r1 { animation-delay: 0.03s; }
         .prog-r2 { animation-delay: 0.09s; }
         .prog-r3 { animation-delay: 0.15s; }
@@ -229,7 +263,7 @@ export default function ProgramsSection() {
         .prog-r5 { animation-delay: 0.27s; }
         .prog-r6 { animation-delay: 0.33s; }
 
-        /* Inner elements */
+        /* ── Content elements ── */
         .prog-top-row { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 22px; }
         .prog-tagline-row { display: flex; align-items: center; gap: 8px; }
         .prog-tagline { font-size: 0.88rem; color: #1429D0; font-weight: 600; margin: 0; }
@@ -241,7 +275,8 @@ export default function ProgramsSection() {
           border: 1px solid rgba(20,41,208,0.2);
           border-radius: 100px;
         }
-        .prog-popular-dot { width: 7px; height: 7px; background: #1429D0; border-radius: 50%; }
+        .prog-popular-dot { width: 7px; height: 7px; background: #1429D0; border-radius: 50%; animation: prog-dot-pulse 2s ease-in-out infinite; }
+        @keyframes prog-dot-pulse { 0%,100%{opacity:1} 50%{opacity:.35} }
         .prog-popular-text { font-size: 0.72rem; font-weight: 700; color: #1429D0; }
 
         .prog-content-heading {
@@ -260,23 +295,36 @@ export default function ProgramsSection() {
 
         .prog-desc {
           color: #36383e; font-size: 1rem; line-height: 1.75;
-          margin-bottom: 26px; max-width: 580px;
+          margin-bottom: 14px; max-width: 540px;
         }
+
+        /* Meta row */
+        .prog-meta-row {
+          display: flex; align-items: center; gap: 1.25rem;
+          margin-bottom: 20px; flex-wrap: wrap;
+        }
+        .prog-meta-item {
+          display: flex; align-items: center; gap: 0.4rem;
+          font-size: 0.79rem; font-weight: 600; color: #6B7280;
+        }
+        .prog-meta-item svg { color: #1429D0; flex-shrink: 0; }
 
         .prog-tools { display: flex; flex-wrap: wrap; gap: 9px; margin-bottom: 32px; }
         .prog-tool-tag {
           display: inline-flex; align-items: center; gap: 6px;
           padding: 7px 13px;
-          background: #fff;
+          background: rgba(255,255,255,0.88);
           border: 1.5px solid rgba(20,41,208,0.16);
           border-radius: 8px;
           font-size: 0.8rem; font-weight: 600; color: #262832;
           transition: all 0.18s;
           box-shadow: 0 1px 4px rgba(20,41,208,0.06);
+          backdrop-filter: blur(6px);
         }
         .prog-tool-tag:hover {
           border-color: #1429D0; color: #1429D0;
-          background: #F2F5FF; transform: translateY(-1px);
+          background: rgba(242,245,255,0.95); transform: translateY(-1px);
+          box-shadow: 0 4px 12px rgba(20,41,208,0.1);
         }
         .prog-tool-icon { display: inline-flex; align-items: center; font-size: 1rem; }
 
@@ -297,74 +345,30 @@ export default function ProgramsSection() {
           box-shadow: 0 8px 28px rgba(20,41,208,0.36);
         }
 
-        /* ── Tablet (≤ 900px) ── */
+        /* ── Responsive ── */
         @media (max-width: 900px) {
-          .prog-section  { padding: 64px 0; }
-          .prog-card     { flex-direction: column; min-height: unset; }
-
-          /* Sidebar becomes horizontal scrollable tab strip */
+          .prog-card { flex-direction: column; }
           .prog-sidebar {
             width: 100%; min-width: unset;
             flex-direction: row; overflow-x: auto;
-            border-right: none;
-            border-bottom: 1px solid rgba(20,41,208,0.10);
-            /* hide scrollbar but keep scrollable */
-            scrollbar-width: none;
-            -ms-overflow-style: none;
+            border-right: none; border-bottom: 1px solid rgba(20,41,208,0.10);
           }
-          .prog-sidebar::-webkit-scrollbar { display: none; }
-
           .prog-menu-item {
-            border-left: none;
-            border-bottom: 3px solid transparent;
-            border-right: 1px solid rgba(20,41,208,0.07);
+            border-left: none; border-bottom: 3px solid transparent;
             white-space: nowrap; flex-shrink: 0;
-            padding: 16px 20px;
-            font-size: 0.85rem;
           }
-          .prog-menu-item:last-child { border-right: none; }
-          .prog-menu-item.active {
-            border-bottom-color: #1429D0;
-            border-left: none;
-            background: #fff;
-          }
+          .prog-menu-item.active { border-bottom-color: #1429D0; border-left: none; }
           .prog-menu-arrow { display: none; }
-
-          .prog-content  { padding: 32px 28px; }
-          .prog-content-heading { font-size: clamp(1.5rem, 4vw, 2rem); }
+          .prog-content { padding: 28px 20px; }
           .prog-bottom-row { flex-direction: column; gap: 14px; align-items: flex-start; }
-          .prog-btn      { width: 100%; justify-content: center; }
-          .prog-desc     { font-size: 0.94rem; }
+          .prog-btn { width: 100%; justify-content: center; }
+          /* On mobile, simpler wash */
+          .prog-wash { background: rgba(255,255,255,0.92); }
+          .prog-tint  { display: none; }
         }
-
-        /* ── Large mobile (≤ 640px) ── */
-        @media (max-width: 640px) {
-          .prog-section  { padding: 52px 0; }
-          .prog-header   { margin-bottom: 32px; }
-          .prog-container { padding: 0 16px; }
-
-          .prog-menu-item { padding: 14px 16px; font-size: 0.82rem; }
-
-          .prog-content  { padding: 24px 20px; }
-          .prog-top-row  { flex-direction: column; gap: 10px; align-items: flex-start; }
-          .prog-content-heading { font-size: 1.5rem; margin-bottom: 12px; }
-          .prog-badge-pill { font-size: 0.75rem; padding: 6px 14px; margin-bottom: 14px; }
-          .prog-desc     { font-size: 0.9rem; line-height: 1.65; margin-bottom: 20px; }
-          .prog-tools    { gap: 7px; margin-bottom: 24px; }
-          .prog-tool-tag { font-size: 0.76rem; padding: 6px 11px; }
-          .prog-level    { font-size: 0.8rem; }
-        }
-
-        /* ── Small mobile (≤ 400px) ── */
-        @media (max-width: 400px) {
-          .prog-section  { padding: 44px 0; }
-          .prog-container { padding: 0 12px; }
-          .prog-main-heading { font-size: 1.55rem; }
-          .prog-menu-item { padding: 12px 14px; font-size: 0.78rem; }
-          .prog-content  { padding: 20px 16px; }
-          .prog-content-heading { font-size: 1.35rem; }
-          .prog-tool-tag { font-size: 0.72rem; padding: 5px 10px; }
-          .prog-btn      { font-size: 0.88rem; padding: 11px 20px; }
+        @media (max-width: 540px) {
+          .prog-top-row { flex-direction: column; gap: 10px; }
+          .prog-section { padding: 60px 0; }
         }
       `}</style>
 
@@ -373,6 +377,7 @@ export default function ProgramsSection() {
         <div className="prog-blob-bl" />
 
         <div className="prog-container">
+
           {/* Header */}
           <div className="prog-header">
             <div className="prog-label-row">
@@ -404,12 +409,27 @@ export default function ProgramsSection() {
 
             {/* Content area */}
             <div className="prog-content-wrap">
-              {/* Gradient bg — transitions smoothly */}
-              <div className="prog-content-bg" style={{ background: prog.gradient }} />
-              {/* Frost */}
-              <div className="prog-content-frost" />
 
-              {/* Animated panel */}
+              {/* 1. Full-bleed background image */}
+              <div
+                key={`img-${activeIndex}`}
+                className="prog-bg-img"
+                style={{ backgroundImage: `url('${prog.img}')` }}
+              />
+
+              {/* 2. White-to-transparent wash (left clear, right shows image) */}
+              <div className="prog-wash" />
+
+              {/* 3. Per-program blue tint on the right half */}
+              <div
+                className="prog-tint"
+                style={{
+                  '--prog-tint-start': prog.wash.match(/rgba\([^)]+\)/g)?.[0] ?? 'rgba(20,41,208,0.10)',
+                  '--prog-tint-end':   prog.wash.match(/rgba\([^)]+\)/g)?.[1] ?? 'rgba(14,127,221,0.16)',
+                }}
+              />
+
+              {/* 4. Animated content */}
               <div key={animKey} className="prog-content">
 
                 <div className={`prog-top-row prog-r1 ${animClass}`}>
@@ -437,6 +457,18 @@ export default function ProgramsSection() {
                 <p className={`prog-desc prog-r4 ${animClass}`}>
                   {prog.description}
                 </p>
+
+                <div className={`prog-meta-row prog-r4 ${animClass}`}>
+                  <div className="prog-meta-item">
+                    <Clock size={13} /> {prog.meta.duration}
+                  </div>
+                  <div className="prog-meta-item">
+                    <Users size={13} /> {prog.meta.students} enrolled
+                  </div>
+                  <div className="prog-meta-item">
+                    <Star size={13} /> {prog.meta.rating} rating
+                  </div>
+                </div>
 
                 <div className={`prog-tools prog-r5 ${animClass}`}>
                   {prog.tools.map((tool, i) => (

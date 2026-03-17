@@ -1,25 +1,31 @@
 import axios from "axios";
 
 const API = axios.create({
-  baseURL: "/api",  // Vite proxy forwards /api → http://localhost:5000/api
+  baseURL: "/api",
+  timeout: 15000, // 15s timeout
 });
 
-// Attach JWT token to every request automatically
+// Cache the token in memory — avoid reading localStorage on every request
+let _token = localStorage.getItem("token");
+
+// Update cached token when it changes
+export const setToken = (token) => { _token = token; };
+export const clearToken = () => { _token = null; };
+
 API.interceptors.request.use((config) => {
-  const token = localStorage.getItem("token");
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
+  if (_token) {
+    config.headers.Authorization = `Bearer ${_token}`;
   }
   return config;
 });
 
-// Handle 401 globally — redirect to login if token expired
 API.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response?.status === 401) {
       localStorage.removeItem("token");
       localStorage.removeItem("user");
+      _token = null;
       window.location.href = "/signin";
     }
     return Promise.reject(error);

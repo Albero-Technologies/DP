@@ -1,26 +1,26 @@
 import API from "./axiosInstance";
 
-export const getAllBatches = async () => {
-  const res = await API.get("/batches");
+export const getAllCourses = async () => {
+  const res = await API.get("/courses");
   return res.data;
 };
 
-export const getBatchById = async (id) => {
-  const res = await API.get(`/batches/${id}`);
+export const getCourseById = async (id) => {
+  const res = await API.get(`/courses/${id}`);
   return res.data;
 };
 
-export const createBatch = async (batchData) => {
-  const res = await API.post("/batches", batchData);
+export const createCourse = async (courseData) => {
+  const res = await API.post("/courses", courseData);
   return res.data;
 };
 
-export const updateBatch = async (id, batchData) => {
-  const res = await API.put(`/batches/${id}`, batchData);
+export const updateCourse = async (id, courseData) => {
+  const res = await API.put(`/courses/${id}`, courseData);
   return res.data;
 };
 
-export const deleteBatch = async (id) => {
-  const res = await API.delete(`/batches/${id}`);
+export const deleteCourse = async (id) => {
+  const res = await API.delete(`/courses/${id}`);
   return res.data;
 };

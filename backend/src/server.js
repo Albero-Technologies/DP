@@ -7,21 +7,11 @@ import Enrollment from "./modules/enrollments/enrollment.model.js";
 import Invoice from "./modules/finance/invoice.model.js";
 import Payment from "./modules/finance/payment.model.js";
 import Notification from "./modules/notifications/notification.model.js";
-
-
-
-console.log("User Model Loaded:", User.modelName);
-console.log("Course Model Loaded:", Course.modelName);
-console.log("Batch Model Loaded:", Batch.modelName);
-console.log("Enrollment Model Loaded:", Enrollment.modelName);
-console.log("Invoice Model:", Invoice.modelName);
-console.log("Payment Model:", Payment.modelName);
-console.log("Notification Model:", Notification.modelName);
+import Lead from "./modules/leads/lead.model.js";
+import Support from "./modules/support/support.model.js";
+import DemoCourse from "./modules/demo-courses/demo-course.model.js";
+import Session from "./modules/sessions/session.model.js";
 
 const PORT = process.env.PORT || 5000;
-
 connectDB();
-
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-});
+app.listen(PORT, () => console.log(`Server running on port ${PORT}`));

@@ -32,7 +32,6 @@ export default function Footer() {
         .dp-footer *::before,
         .dp-footer *::after { box-sizing: border-box; }
 
-        /* ── Desktop: 5-column layout ── */
         .dp-footer-grid {
           display: grid;
           grid-template-columns: 1.8fr 1fr 1fr 1fr 0.8fr;
@@ -42,27 +41,24 @@ export default function Footer() {
           align-items: start;
         }
 
-        /* ── Tablet (768px – 1024px): brand + 3 cols + social ── */
         @media (max-width: 1024px) {
           .dp-footer-grid {
             grid-template-columns: 1.4fr 1fr 1fr 1fr;
             gap: 2.5rem 2rem;
           }
-          /* Social column wraps to new row alongside brand */
           .dp-footer-social {
             grid-column: 1;
             grid-row: 2;
           }
         }
 
-        /* ── Small tablet (600px – 768px): 2-column ── */
         @media (max-width: 768px) {
           .dp-footer-grid {
             grid-template-columns: 1fr 1fr;
             gap: 2.5rem 2rem;
           }
           .dp-footer-brand {
-            grid-column: 1 / -1; /* full width */
+            grid-column: 1 / -1;
           }
           .dp-footer-social {
             grid-column: auto;
@@ -70,7 +66,6 @@ export default function Footer() {
           }
         }
 
-        /* ── Mobile (≤480px): single column ── */
         @media (max-width: 480px) {
           .dp-footer-grid {
             grid-template-columns: 1fr;
@@ -81,7 +76,6 @@ export default function Footer() {
           }
         }
 
-        /* ── Bottom bar ── */
         .dp-footer-bottom {
           max-width: 1200px;
           margin: 0 auto;
@@ -100,22 +94,138 @@ export default function Footer() {
           }
         }
 
+        /* ── Link hover ── */
+        .dp-footer-link {
+          position: relative;
+          display: inline-flex;
+          align-items: center;
+          gap: 0.35rem;
+        }
+        .dp-footer-link::after {
+          content: '';
+          position: absolute;
+          left: 0; bottom: -2px;
+          width: 0; height: 1px;
+          background: #1429D0;
+          transition: width 0.25s ease;
+        }
         .dp-footer-link:hover { color: #BFD2FF !important; }
-        .dp-social-btn:hover  { color: #BFD2FF !important; transform: translateY(-3px) !important; }
+        .dp-footer-link:hover::after { width: 100%; }
+
+        .dp-link-arrow {
+          opacity: 0;
+          transform: translateX(-3px);
+          transition: all 0.2s ease;
+          color: #1429D0;
+          font-size: 0.72rem;
+        }
+        .dp-footer-link:hover .dp-link-arrow {
+          opacity: 1;
+          transform: translateX(0);
+        }
+
+        /* ── Social hover ── */
+        .dp-social-btn {
+          width: 36px; height: 36px;
+          border-radius: 9px;
+          background: rgba(255,255,255,0.05);
+          border: 1px solid rgba(255,255,255,0.08);
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          color: #94A3B8;
+          text-decoration: none;
+          transition: all 0.22s ease;
+        }
+        .dp-social-btn:hover {
+          background: rgba(20,41,208,0.2) !important;
+          border-color: rgba(20,41,208,0.45) !important;
+          color: #BFD2FF !important;
+          transform: translateY(-2px);
+          box-shadow: 0 4px 14px rgba(20,41,208,0.25);
+        }
+
+        /* ── Contact row hover ── */
+        .dp-contact-row:hover .dp-contact-text { color: #BFD2FF !important; }
+
+        /* ── Column heading ── */
+        .dp-col-heading {
+          display: flex;
+          align-items: center;
+          gap: 0.5rem;
+          margin-bottom: 1.25rem;
+        }
+        .dp-col-heading-line {
+          flex: 1;
+          height: 1px;
+          background: linear-gradient(90deg, rgba(20,41,208,0.3) 0%, transparent 100%);
+        }
+
+        /* ── Divider ── */
+        .dp-divider {
+          border: none;
+          height: 1px;
+          background: linear-gradient(90deg, transparent, rgba(20,41,208,0.3) 30%, rgba(20,41,208,0.3) 70%, transparent);
+          margin: 3.5rem 0 0;
+        }
+
+        /* ── Badge ── */
+        .dp-badge {
+          display: inline-flex;
+          align-items: center;
+          gap: 0.4rem;
+          background: rgba(20,41,208,0.15);
+          border: 1px solid rgba(20,41,208,0.3);
+          border-radius: 99px;
+          padding: 0.22rem 0.7rem;
+          font-size: 0.71rem;
+          font-weight: 600;
+          color: #BFD2FF;
+          letter-spacing: 0.03em;
+          width: fit-content;
+        }
+        .dp-badge-dot {
+          width: 5px; height: 5px;
+          border-radius: 50%;
+          background: #1429D0;
+          box-shadow: 0 0 5px #1429D0;
+          animation: dp-blink 2s ease-in-out infinite;
+        }
+        @keyframes dp-blink {
+          0%, 100% { opacity: 1; }
+          50% { opacity: 0.35; }
+        }
       `}</style>
 
       <footer className="dp-footer" style={{
         background: "#161619",
-        padding: "4rem 5% 2rem",
+        padding: "4rem 5% 0",
         borderTop: "1px solid rgba(255,255,255,0.07)",
         fontFamily: "'DM Sans', sans-serif",
+        position: "relative",
+        overflow: "hidden",
       }}>
 
-        <div className="dp-footer-grid">
+        {/* Ambient glow */}
+        <div aria-hidden style={{
+          position: "absolute",
+          top: 0, left: 0, right: 0,
+          height: "220px",
+          background: "radial-gradient(ellipse 60% 100% at 50% -20%, rgba(20,41,208,0.08) 0%, transparent 100%)",
+          pointerEvents: "none",
+        }} />
+
+        <div className="dp-footer-grid" style={{ position: "relative" }}>
 
           {/* Brand column */}
           <div className="dp-footer-brand" style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
-            <div style={{ fontSize: "1.6rem", fontWeight: 800, letterSpacing: "-0.03em" }}>
+
+            <div className="dp-badge">
+              <span className="dp-badge-dot" />
+              Enrollments Open
+            </div>
+
+            <div style={{ fontSize: "1.6rem", fontWeight: 800, letterSpacing: "-0.03em", lineHeight: 1 }}>
               <span style={{ color: "#fff" }}>Data</span>
               <span style={{ color: "#1429D0" }}>Preneur</span>
             </div>
@@ -124,29 +234,50 @@ export default function Footer() {
               Empowering the next generation of data professionals and financial analysts across India with industry-led mentorship.
             </p>
 
-            <div style={{ display: "flex", flexDirection: "column", gap: "0.6rem", marginTop: "0.25rem" }}>
-              <div style={{ display: "flex", alignItems: "center", gap: "0.65rem", fontSize: "0.84rem", color: "#CBD5E1" }}>
-                <Mail size={13} color="#1429D0" style={{ flexShrink: 0 }} />
-                hello@datapreneur.in
-              </div>
-              <div style={{ display: "flex", alignItems: "center", gap: "0.65rem", fontSize: "0.84rem", color: "#CBD5E1" }}>
-                <Phone size={13} color="#1429D0" style={{ flexShrink: 0 }} />
-                +91-98100-00000
-              </div>
+            <div style={{ display: "flex", flexDirection: "column", gap: "0.55rem", marginTop: "0.25rem" }}>
+              {[
+                { icon: <Mail size={13} />, text: "hello@datapreneur.in" },
+                { icon: <Phone size={13} />, text: "+91-98100-00000" },
+              ].map(({ icon, text }) => (
+                <div
+                  key={text}
+                  className="dp-contact-row"
+                  style={{ display: "flex", alignItems: "center", gap: "0.6rem", cursor: "pointer", width: "fit-content" }}
+                >
+                  <div style={{
+                    width: 26, height: 26, borderRadius: 7,
+                    background: "rgba(20,41,208,0.12)",
+                    border: "1px solid rgba(20,41,208,0.25)",
+                    display: "flex", alignItems: "center", justifyContent: "center",
+                    color: "#1429D0", flexShrink: 0,
+                  }}>
+                    {icon}
+                  </div>
+                  <span className="dp-contact-text" style={{
+                    fontSize: "0.84rem", color: "#94A3B8",
+                    transition: "color 0.2s ease",
+                  }}>
+                    {text}
+                  </span>
+                </div>
+              ))}
             </div>
           </div>
 
           {/* Link columns */}
           {cols.map((col) => (
             <div key={col.title}>
-              <h4 style={{
-                fontWeight: 700, fontSize: "0.75rem", color: "#fff",
-                letterSpacing: "1.5px", textTransform: "uppercase",
-                marginBottom: "1.2rem", marginTop: 0,
-              }}>
-                {col.title}
-              </h4>
-              <ul style={{ listStyle: "none", padding: 0, margin: 0, display: "flex", flexDirection: "column", gap: "0.7rem" }}>
+              <div className="dp-col-heading">
+                <h4 style={{
+                  fontWeight: 700, fontSize: "0.75rem", color: "#fff",
+                  letterSpacing: "1.5px", textTransform: "uppercase",
+                  margin: 0, whiteSpace: "nowrap",
+                }}>
+                  {col.title}
+                </h4>
+                <span className="dp-col-heading-line" />
+              </div>
+              <ul style={{ listStyle: "none", padding: 0, margin: 0, display: "flex", flexDirection: "column", gap: "0.72rem" }}>
                 {col.links.map(l => (
                   <li key={l}>
                     <span
@@ -157,6 +288,7 @@ export default function Footer() {
                       }}
                     >
                       {l}
+                      <span className="dp-link-arrow">›</span>
                     </span>
                   </li>
                 ))}
@@ -166,47 +298,64 @@ export default function Footer() {
 
           {/* Social column */}
           <div className="dp-footer-social">
-            <h4 style={{
-              fontWeight: 700, fontSize: "0.75rem", color: "#fff",
-              letterSpacing: "1.5px", textTransform: "uppercase",
-              marginBottom: "1.2rem", marginTop: 0,
-            }}>
-              Connect
-            </h4>
-            <div style={{ display: "flex", gap: "1.1rem", alignItems: "center", flexWrap: "wrap" }}>
+            <div className="dp-col-heading">
+              <h4 style={{
+                fontWeight: 700, fontSize: "0.75rem", color: "#fff",
+                letterSpacing: "1.5px", textTransform: "uppercase",
+                margin: 0, whiteSpace: "nowrap",
+              }}>
+                Connect
+              </h4>
+              <span className="dp-col-heading-line" />
+            </div>
+            <div style={{ display: "flex", gap: "0.65rem", alignItems: "center", flexWrap: "wrap" }}>
               {[
-                { ico: <Linkedin size={19} />, lab: "LinkedIn"  },
-                { ico: <Twitter  size={19} />, lab: "Twitter"   },
-                { ico: <Youtube  size={19} />, lab: "YouTube"   },
-                { ico: <Instagram size={19}/>, lab: "Instagram" },
+                { ico: <Linkedin size={16} />, lab: "LinkedIn"  },
+                { ico: <Twitter  size={16} />, lab: "Twitter"   },
+                { ico: <Youtube  size={16} />, lab: "YouTube"   },
+                { ico: <Instagram size={16}/>, lab: "Instagram" },
               ].map((s, i) => (
-                <a
-                  key={i}
-                  href="#"
-                  className="dp-social-btn"
-                  title={s.lab}
-                  style={{
-                    color: "#94A3B8",
-                    textDecoration: "none",
-                    display: "inline-flex", alignItems: "center",
-                    transition: "all 0.25s ease",
-                  }}
-                >
+                <a key={i} href="#" className="dp-social-btn" title={s.lab}>
                   {s.ico}
                 </a>
               ))}
+            </div>
+
+            {/* Newsletter nudge */}
+            <div style={{
+              marginTop: "1.75rem",
+              background: "rgba(20,41,208,0.08)",
+              border: "1px solid rgba(20,41,208,0.2)",
+              borderRadius: 10,
+              padding: "0.9rem 1rem",
+            }}>
+              <p style={{ fontSize: "0.77rem", color: "#94A3B8", margin: "0 0 0.5rem", lineHeight: 1.5 }}>
+                Weekly insights on data careers
+              </p>
+              <a
+                href="#"
+                style={{
+                  fontSize: "0.77rem", fontWeight: 700,
+                  color: "#BFD2FF", textDecoration: "none",
+                  display: "inline-flex", alignItems: "center", gap: "0.25rem",
+                  transition: "gap 0.2s ease",
+                }}
+                onMouseOver={e => e.currentTarget.style.gap = "0.45rem"}
+                onMouseOut={e => e.currentTarget.style.gap = "0.25rem"}
+              >
+                Subscribe free →
+              </a>
             </div>
           </div>
 
         </div>
 
+        {/* Divider */}
+        <hr className="dp-divider" />
+
         {/* Bottom bar */}
-        <div style={{
-          marginTop: "3.5rem", paddingTop: "1.5rem",
-          borderTop: "1px solid rgba(255,255,255,0.06)",
-          fontSize: "0.8rem", color: "#4B5563",
-        }}>
-          <div className="dp-footer-bottom">
+        <div style={{ paddingTop: "1.5rem", paddingBottom: "2rem" }}>
+          <div className="dp-footer-bottom" style={{ fontSize: "0.8rem", color: "#4B5563" }}>
             <span>© 2025 DataPreneur Education Pvt. Ltd. All rights reserved.</span>
             <span style={{ display: "flex", alignItems: "center", gap: "0.4rem", color: "#6B7280" }}>
               <PinIcon /> Sector-62, Noida, Uttar Pradesh

@@ -2,7 +2,7 @@ import { Outlet, useNavigate } from "react-router-dom";
 import { useEffect } from "react";
 import AdminSidebar from "../../components/admin/AdminSidebar";
 import AdminNavbar from "../../components/admin/AdminNavbar";
-import { useAuth } from "../../context/AuthContext";
+import useAuth from "../../context/useAuth";
 import "./AdminLayout.css";
 
 export default function AdminLayout({ role = "admin" }) {

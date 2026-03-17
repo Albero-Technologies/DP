@@ -1,10 +1,11 @@
-import { createContext, useContext, useState, useEffect } from "react";
+import { createContext, useState, useEffect } from "react";
 import { loginUser, registerUser, logoutUser, getMe } from "../api/auth.api";
 
-const AuthContext = createContext(null);
+export const AuthContext = createContext(null);
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(() => {
+    // Instantly load user from localStorage — no API call needed on every load
     try {
       const saved = localStorage.getItem("user");
       return saved ? JSON.parse(saved) : null;
@@ -15,21 +16,43 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  // On app load, verify token is still valid against backend
+  // Only verify token if it exists AND we don't already have fresh user data
+  // Use a flag so this only runs once per session, not on every navigation
   useEffect(() => {
     const token = localStorage.getItem("token");
-    if (token) {
+    const savedUser = localStorage.getItem("user");
+
+    // If no token, nothing to verify
+    if (!token) return;
+
+    // If we already have user data in localStorage, trust it immediately
+    // Only do a background refresh to keep it fresh — don't block the UI
+    if (savedUser) {
+      // Silent background refresh (non-blocking)
       getMe()
         .then((res) => {
           setUser(res.data);
           localStorage.setItem("user", JSON.stringify(res.data));
         })
         .catch(() => {
+          // Token expired — clear and redirect
           logoutUser();
           setUser(null);
         });
+      return;
     }
-  }, []);
+
+    // No saved user but token exists — fetch user (first load after login)
+    getMe()
+      .then((res) => {
+        setUser(res.data);
+        localStorage.setItem("user", JSON.stringify(res.data));
+      })
+      .catch(() => {
+        logoutUser();
+        setUser(null);
+      });
+  }, []); // Only on mount
 
   const login = async (email, password) => {
     setLoading(true);
@@ -67,14 +90,11 @@ export const AuthProvider = ({ children }) => {
     setUser(null);
   };
 
-  // Role helpers — backend uses uppercase: ADMIN, TRAINER, COUNSELOR, STUDENT
   const isAdmin     = user?.role === "ADMIN";
   const isTrainer   = user?.role === "TRAINER";
   const isCounselor = user?.role === "COUNSELOR";
   const isStudent   = user?.role === "STUDENT";
-
-  // Returns lowercase role for routing e.g. "admin", "trainer"
-  const roleRoute = user?.role ? user.role.toLowerCase() : null;
+  const roleRoute   = user?.role ? user.role.toLowerCase() : null;
 
   return (
     <AuthContext.Provider
@@ -83,10 +103,4 @@ export const AuthProvider = ({ children }) => {
       {children}
     </AuthContext.Provider>
   );
-};
-
-export const useAuth = () => {
-  const ctx = useContext(AuthContext);
-  if (!ctx) throw new Error("useAuth must be used inside AuthProvider");
-  return ctx;
 };

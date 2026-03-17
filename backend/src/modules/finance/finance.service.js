@@ -1,3 +1,4 @@
+import mongoose from "mongoose";
 import Invoice from "./invoice.model.js";
 import Payment from "./payment.model.js";
 import Enrollment from "../enrollments/enrollment.model.js";
@@ -26,7 +27,7 @@ export const createInvoice = async (data, createdById) => {
     enrollment: enrollmentId,
     totalAmount,
     dueDate,
-    createdBy: createdById,
+    ...(createdById && createdById !== "admin-env" && mongoose.Types.ObjectId.isValid(createdById) ? { createdBy: createdById } : {}),
   });
 
   // 4️⃣ Notify Student
@@ -60,7 +61,7 @@ export const addPayment = async (data, createdById) => {
     amount,
     paymentMethod,
     transactionId,
-    createdBy: createdById,
+    ...(createdById && createdById !== "admin-env" && mongoose.Types.ObjectId.isValid(createdById) ? { createdBy: createdById } : {}),
   });
 
   // 3️⃣ Update invoice amounts

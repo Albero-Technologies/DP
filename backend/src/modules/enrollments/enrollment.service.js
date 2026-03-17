@@ -1,3 +1,4 @@
+import mongoose from "mongoose";
 import Enrollment from "./enrollment.model.js";
 import Batch from "../batches/batch.model.js";
 import User from "../users/user.model.js";
@@ -39,7 +40,7 @@ export const enrollStudent = async (data, createdById) => {
   const enrollment = await Enrollment.create({
     student: studentId,
     batch: batchId,
-    createdBy: createdById,
+    ...(createdById && createdById !== "admin-env" && mongoose.Types.ObjectId.isValid(createdById) ? { createdBy: createdById } : {}),
   });
 
   console.log("✅ enrollStudent - Created enrollment:", enrollment._id);
