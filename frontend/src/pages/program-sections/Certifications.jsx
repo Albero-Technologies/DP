@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { useInView } from "../../hooks/useInView";
+import EnrollModal from "../../components/EnrollModel";
 
 // ── SVG Icon library ──────────────────────────────────────────────────────
 const CERT_ICONS = {
@@ -156,6 +157,8 @@ export default function Certifications({ course }) {
   const [isPlaying, setIsPlaying] = useState(true);
   const timerRef = useRef(null);
   const total = course.certifications.length;
+  // Enroll modal state
+  const [modalOpen, setModalOpen] = useState(false);
 
   useEffect(() => {
     if (!isPlaying) return;
@@ -169,6 +172,8 @@ export default function Certifications({ course }) {
 
   return (
     <>
+        {/* Enroll modal outside the main section to avoid z-index and overflow issues */}
+      <EnrollModal isOpen={modalOpen} onClose={() => setModalOpen(false)} />
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800;900&display=swap');
         .dp-cert-arrow { transition: all .2s ease !important; }
@@ -365,6 +370,7 @@ export default function Certifications({ course }) {
                 boxShadow: "0 4px 14px rgba(20,41,208,0.25)",
                 transition: "all .2s ease",
               }}
+              onClick={() => setModalOpen(true)}
             >
               Enroll to Earn Them →
             </button>

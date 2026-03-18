@@ -1,6 +1,7 @@
 import { Routes, Route, Navigate, useLocation } from "react-router-dom";
 import { AuthProvider } from "./context/AuthContext";
 import ProtectedRoute from "./context/ProtectedRoute";
+import ScrollToTop from "./components/ScrollToTop";
 
 // Public
 import HomePage from "./pages/HomePage";
@@ -60,6 +61,7 @@ export default function App() {
 
   return (
     <AuthProvider>
+      <ScrollToTop />
       {!hideBackground && <AnimatedBackground />}
       <div style={{ position: "relative", zIndex: 1 }}>
         <Routes>

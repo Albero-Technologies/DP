@@ -1,11 +1,16 @@
 import { useInView } from "../../hooks/useInView";
 import { FiCheck, FiX, FiClipboard } from 'react-icons/fi';
+import EnrollModal from "../../components/EnrollModel";
+import { useState } from "react";
 
 export default function Eligibility({ course }) {
   const [ref, inView] = useInView(0.1);
+  const [modalOpen, setModalOpen] = useState(false);
 
   return (
     <>
+      {/* // Enroll modal outside the main section to avoid z-index and overflow issues */}
+      < EnrollModal isOpen={modalOpen} onClose={() => setModalOpen(false)} />
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800;900&display=swap');
         @keyframes eligFloat {
@@ -177,7 +182,9 @@ export default function Eligibility({ course }) {
                     boxShadow: "0 4px 14px rgba(20,41,208,0.25)",
                   }}
                   onMouseEnter={e => { e.currentTarget.style.transform = "scale(1.04)"; e.currentTarget.style.background = "#1E3A8A"; }}
-                  onMouseLeave={e => { e.currentTarget.style.transform = "none"; e.currentTarget.style.background = "#1429D0"; }}>
+                  onMouseLeave={e => { e.currentTarget.style.transform = "none"; e.currentTarget.style.background = "#1429D0"; }}
+                  onClick={() => setModalOpen(true)}
+                 >
                   Talk to an Advisor
                 </button>
               </div>

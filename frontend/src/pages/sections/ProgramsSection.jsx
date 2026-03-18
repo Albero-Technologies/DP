@@ -1,4 +1,5 @@
 import { useState, useRef } from "react";
+import { useNavigate } from "react-router-dom";
 import { ArrowRight, Zap, Users, Clock, Star } from "lucide-react";
 import {
   FaPython, FaDatabase, FaFire, FaSearch, FaHdd, FaLink, FaBrain
@@ -7,103 +8,113 @@ import { FiCloud, FiGrid, FiBox, FiCpu, FiBarChart2, FiActivity } from 'react-ic
 
 const programsData = [
   {
-    title:       "Data Analytics",
-    badge:       "Data Tools & Visualization",
-    heading:     "Data Analytics",
-    tagline:     "Launch your analytics career in just 6 months",
+    title: "Data Analytics",
+    slug: "data-analytics",
+    badge: "Data Tools & Visualization",
+    heading: "Data Analytics",
+    tagline: "Launch your analytics career in just 6 months",
     description: "Master Excel, SQL, Python, Tableau, and Power BI by solving real business problems. Walk out with a portfolio that proves you can deliver insights, not just run queries.",
     tools: [
-      { name: "Python",   icon: <FaPython /> },
-      { name: "SQL",      icon: <FaDatabase /> },
-      { name: "Tableau",  icon: <FiBarChart2 /> },
+      { name: "Python", icon: <FaPython /> },
+      { name: "SQL", icon: <FaDatabase /> },
+      { name: "Tableau", icon: <FiBarChart2 /> },
       { name: "Power BI", icon: <FiActivity /> },
-      { name: "Excel",    icon: <FiGrid /> },
+      { name: "Excel", icon: <FiGrid /> },
     ],
-    meta:    { duration: "6 months", students: "1,200+", rating: "4.9" },
-    level:   "Beginner to Advanced",
+    meta: { duration: "6 months", students: "1,200+", rating: "4.9" },
+    level: "Beginner to Advanced",
     popular: true,
-    /* Soft blue-tinted wash — mimics the orange reference but in brand blue */
     wash: "linear-gradient(105deg, rgba(20,41,208,0.08) 0%, rgba(20,41,208,0.14) 100%)",
-    img:  "https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=1400&q=75",
+    img: "https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=1400&q=75",
+    imgPosition: "center center",
   },
   {
-    title:       "Business Analytics",
-    badge:       "Business Intelligence",
-    heading:     "Business Analytics",
-    tagline:     "Transform data into business value",
+    title: "Business Analytics",
+    slug: "business-analytics",
+    badge: "Business Intelligence",
+    heading: "Business Analytics",
+    tagline: "Transform data into business value",
     description: "Learn data-driven decision making, KPI frameworks, and business strategy with analytics. Build dashboards that executives actually use to make decisions.",
     tools: [
-      { name: "Excel",    icon: <FiGrid /> },
+      { name: "Excel", icon: <FiGrid /> },
       { name: "Power BI", icon: <FiActivity /> },
-      { name: "SQL",      icon: <FaDatabase /> },
+      { name: "SQL", icon: <FaDatabase /> },
     ],
-    meta:    { duration: "5 months", students: "850+", rating: "4.8" },
-    level:   "Beginner to Advanced",
+    meta: { duration: "5 months", students: "850+", rating: "4.8" },
+    level: "Beginner to Advanced",
     popular: false,
     wash: "linear-gradient(105deg, rgba(14,127,221,0.07) 0%, rgba(14,127,221,0.13) 100%)",
-    img:  "https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=1400&q=75",
+    img: "https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=1400&q=75",
+    imgPosition: "center center",
   },
   {
-    title:       "Data Science and AI",
-    badge:       "AI & Machine Learning",
-    heading:     "Data Science and AI",
-    tagline:     "Master AI from fundamentals to deployment",
+    title: "Data Science and AI",
+    slug: "data-science-ai",
+    badge: "AI & Machine Learning",
+    heading: "Data Science and AI",
+    tagline: "Master AI from fundamentals to deployment",
     description: "The complete journey — from Python fundamentals to neural networks, NLP, generative AI, and deployment on cloud platforms used by industry leaders.",
     tools: [
       { name: "TensorFlow", icon: <FiCpu /> },
-      { name: "PyTorch",    icon: <FaFire /> },
-      { name: "Docker",     icon: <FiBox /> },
-      { name: "AWS",        icon: <FiCloud /> },
-      { name: "BERT",       icon: <FaBrain /> },
+      { name: "PyTorch", icon: <FaFire /> },
+      { name: "Docker", icon: <FiBox /> },
+      { name: "AWS", icon: <FiCloud /> },
+      { name: "BERT", icon: <FaBrain /> },
     ],
-    meta:    { duration: "8 months", students: "620+", rating: "4.9" },
-    level:   "Beginner to Advanced",
+    meta: { duration: "8 months", students: "620+", rating: "4.9" },
+    level: "Beginner to Advanced",
     popular: false,
     wash: "linear-gradient(105deg, rgba(20,41,208,0.1) 0%, rgba(30,58,138,0.15) 100%)",
-    img:  "https://images.unsplash.com/photo-1677442135703-1787eea5ce01?w=1400&q=75",
+    img: "https://images.unsplash.com/photo-1677442135703-1787eea5ce01?w=1400&q=75",
+    imgPosition: "center center",
   },
   {
-    title:       "Agentic AI & Prompt Eng.",
-    badge:       "Gen AI",
-    heading:     "Agentic AI & Prompt Engineering",
-    tagline:     "Build the future of AI automation",
+    title: "Agentic AI & Prompt Eng.",
+    slug: "agentic-ai-prompt-engineering",
+    badge: "Gen AI",
+    heading: "Agentic AI & Prompt Engineering",
+    tagline: "Build the future of AI automation",
     description: "Build AI agents, automation workflows, and advanced prompting systems using the latest LLM tooling. From RAG pipelines to production-grade agents.",
     tools: [
-      { name: "OpenAI",    icon: <FaBrain /> },
+      { name: "OpenAI", icon: <FaBrain /> },
       { name: "LangChain", icon: <FaLink /> },
-      { name: "RAG",       icon: <FaSearch /> },
+      { name: "RAG", icon: <FaSearch /> },
       { name: "Vector DB", icon: <FaHdd /> },
     ],
-    meta:    { duration: "4 months", students: "430+", rating: "4.9" },
-    level:   "Intermediate",
+    meta: { duration: "4 months", students: "430+", rating: "4.9" },
+    level: "Intermediate",
     popular: false,
     wash: "linear-gradient(105deg, rgba(14,127,221,0.08) 0%, rgba(20,41,208,0.14) 100%)",
-    img:  "https://images.unsplash.com/photo-1620712943543-bcc4688e7485?w=1400&q=75",
+    img: "https://images.unsplash.com/photo-1620712943543-bcc4688e7485?w=1400&q=75",
+    imgPosition: "center center",
   },
   {
-    title:       "Investment Banking",
-    badge:       "Finance & Valuation",
-    heading:     "Investment Banking",
-    tagline:     "Master financial modeling and deals",
+    title: "Investment Banking",
+    slug: "investment-banking",
+    badge: "Finance & Valuation",
+    heading: "Investment Banking",
+    tagline: "Master financial modeling and deals",
     description: "Master financial modeling, valuation, M&A, and deal structuring for top finance roles. Land roles at bulge-bracket banks and elite boutiques.",
     tools: [
-      { name: "Excel",    icon: <FiGrid /> },
+      { name: "Excel", icon: <FiGrid /> },
       { name: "Power BI", icon: <FiActivity /> },
-      { name: "SQL",      icon: <FaDatabase /> },
-      { name: "Python",   icon: <FaPython /> },
+      { name: "SQL", icon: <FaDatabase /> },
+      { name: "Python", icon: <FaPython /> },
     ],
-    meta:    { duration: "6 months", students: "540+", rating: "4.8" },
-    level:   "Beginner to Advanced",
+    meta: { duration: "6 months", students: "540+", rating: "4.8" },
+    level: "Beginner to Advanced",
     popular: false,
     wash: "linear-gradient(105deg, rgba(30,58,138,0.07) 0%, rgba(14,127,221,0.13) 100%)",
-    img:  "https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?w=1400&q=75",
+    img: "https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?w=1400&q=75",
+    imgPosition: "center center",
   },
 ];
 
 export default function ProgramsSection() {
+  const navigate = useNavigate();
   const [activeIndex, setActiveIndex] = useState(0);
-  const [animKey, setAnimKey]         = useState(0);
-  const [direction, setDirection]     = useState("forward");
+  const [animKey, setAnimKey] = useState(0);
+  const [direction, setDirection] = useState("forward");
   const prevIndex = useRef(0);
 
   const handleSelect = (index) => {
@@ -114,7 +125,7 @@ export default function ProgramsSection() {
     setAnimKey(k => k + 1);
   };
 
-  const prog      = programsData[activeIndex];
+  const prog = programsData[activeIndex];
   const animClass = direction === "forward" ? "anim-forward" : "anim-back";
 
   return (
@@ -198,22 +209,18 @@ export default function ProgramsSection() {
         /* ── Content wrap ── */
         .prog-content-wrap { flex: 1; position: relative; overflow: hidden; }
 
-        /* ─── Image layer: full bleed, desaturated slightly ─── */
+        /* ─── Image layer: full bleed ─── */
         .prog-bg-img {
           position: absolute; inset: 0;
           background-size: cover;
-          background-position: center right;
+          background-repeat: no-repeat;
           filter: saturate(0.7) brightness(1.05);
           transition: opacity 0.4s ease;
         }
 
-        /* ─── Soft colour wash — like the orange reference but blue ─── */
-        /* Left ~55%: nearly opaque white so text is crisp                */
-        /* Middle: soft transition into the tinted image                  */
-        /* Right: image visible through the brand-blue tint               */
+        /* ─── Wash ─── */
         .prog-wash {
           position: absolute; inset: 0;
-          /* Solid white on the left fading to transparent, then tint on right */
           background: linear-gradient(
             100deg,
             #ffffff 0%,
@@ -225,7 +232,6 @@ export default function ProgramsSection() {
           transition: background 0.55s ease;
           pointer-events: none;
         }
-        /* Per-program tint overlaid on top of the wash on the right side */
         .prog-tint {
           position: absolute; inset: 0;
           background: linear-gradient(
@@ -414,7 +420,10 @@ export default function ProgramsSection() {
               <div
                 key={`img-${activeIndex}`}
                 className="prog-bg-img"
-                style={{ backgroundImage: `url('${prog.img}')` }}
+                style={{
+                  backgroundImage: `url('${prog.img}')`,
+                  backgroundPosition: prog.imgPosition,
+                }}
               />
 
               {/* 2. White-to-transparent wash (left clear, right shows image) */}
@@ -425,7 +434,7 @@ export default function ProgramsSection() {
                 className="prog-tint"
                 style={{
                   '--prog-tint-start': prog.wash.match(/rgba\([^)]+\)/g)?.[0] ?? 'rgba(20,41,208,0.10)',
-                  '--prog-tint-end':   prog.wash.match(/rgba\([^)]+\)/g)?.[1] ?? 'rgba(14,127,221,0.16)',
+                  '--prog-tint-end': prog.wash.match(/rgba\([^)]+\)/g)?.[1] ?? 'rgba(14,127,221,0.16)',
                 }}
               />
 
@@ -481,7 +490,8 @@ export default function ProgramsSection() {
 
                 <div className={`prog-bottom-row prog-r6 ${animClass}`}>
                   <p className="prog-level">{prog.level}</p>
-                  <button className="prog-btn">
+                  <button className="prog-btn"
+                    onClick={() => navigate(`/programs/${prog.slug}`)} >
                     Discover Program <ArrowRight size={16} />
                   </button>
                 </div>

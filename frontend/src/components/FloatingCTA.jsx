@@ -1,7 +1,9 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 
 export default function FloatingCTA() {
   const [show, setShow] = useState(false);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const h = () => setShow(window.scrollY > 400);
@@ -52,14 +54,24 @@ export default function FloatingCTA() {
             letterSpacing: "-0.01em",
             whiteSpace: "nowrap",
           }}
+          onClick={() => {
+            if (window.location.pathname === "/") {
+              document.getElementById("contact")?.scrollIntoView({ behavior: "smooth" });
+            } else {
+              navigate("/");
+              setTimeout(() => {
+                document.getElementById("contact")?.scrollIntoView({ behavior: "smooth" });
+              }, 100);
+            }
+          }}
         >
           {/* Graduation cap SVG icon */}
           <span className="dp-float-icon" style={{ display: "flex", alignItems: "center" }}>
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-              <polygon points="12,2 22,8 12,14 2,8" fill="rgba(255,255,255,0.9)"/>
-              <path d="M6 10.5v5c0 0 2.5 2.5 6 2.5s6-2.5 6-2.5v-5" stroke="rgba(255,255,255,0.85)" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/>
-              <line x1="22" y1="8" x2="22" y2="14" stroke="rgba(255,255,255,0.7)" strokeWidth="1.6" strokeLinecap="round"/>
-              <circle cx="22" cy="14.5" r="1.2" fill="rgba(255,255,255,0.7)"/>
+              <polygon points="12,2 22,8 12,14 2,8" fill="rgba(255,255,255,0.9)" />
+              <path d="M6 10.5v5c0 0 2.5 2.5 6 2.5s6-2.5 6-2.5v-5" stroke="rgba(255,255,255,0.85)" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+              <line x1="22" y1="8" x2="22" y2="14" stroke="rgba(255,255,255,0.7)" strokeWidth="1.6" strokeLinecap="round" />
+              <circle cx="22" cy="14.5" r="1.2" fill="rgba(255,255,255,0.7)" />
             </svg>
           </span>
           Book Free Session

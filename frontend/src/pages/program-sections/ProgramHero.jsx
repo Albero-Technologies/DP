@@ -1,9 +1,11 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
+import EnrollModal from "../../components/EnrollModel";
 
 export default function ProgramHero({ course }) {
   const [scrollY, setScrollY] = useState(0);
   const [visible, setVisible] = useState(false);
+  const [modalOpen, setModalOpen] = useState(false);
 
   useEffect(() => {
     setVisible(true);
@@ -66,6 +68,9 @@ export default function ProgramHero({ course }) {
           .dp-ph-right-card { padding: 1.5rem !important; }
         }
       `}</style>
+{/* // Enroll modal outside the main section to avoid z-index and overflow issues */}
+
+      < EnrollModal isOpen={modalOpen} onClose={() => setModalOpen(false)} />
 
       <section className="dp-ph-section" style={{
         minHeight: "100vh",
@@ -186,7 +191,8 @@ export default function ProgramHero({ course }) {
                     fontSize: "1rem", fontWeight: 700, cursor: "pointer",
                     boxShadow: "0 8px 24px rgba(20,41,208,0.32)",
                     transition: "all 0.25s ease",
-                  }}>
+                  }}
+                  onClick={()=> setModalOpen(true)}>
                   Enroll Now — {course.price}
                 </button>
                 <button
@@ -197,7 +203,9 @@ export default function ProgramHero({ course }) {
                     background: "#fff", color: "#262832",
                     fontSize: "1rem", fontWeight: 600, cursor: "pointer",
                     transition: "all 0.25s ease",
-                  }}>
+                  }}
+                  onClick={() => setModalOpen(true)}
+                >
                   Book Free Session
                 </button>
               </div>
@@ -298,7 +306,9 @@ export default function ProgramHero({ course }) {
                     marginBottom: "0.65rem",
                     boxShadow: "0 6px 20px rgba(20,41,208,0.28)",
                     transition: "all 0.2s ease",
-                  }}>
+                  }}
+                  onClick={() => setModalOpen(true)}
+                  >
                   Enroll Now
                 </button>
                 <button
@@ -309,7 +319,9 @@ export default function ProgramHero({ course }) {
                     background: "#F2F5FF", color: "#1429D0",
                     fontSize: "0.9rem", fontWeight: 700, cursor: "pointer",
                     transition: "all 0.2s ease",
-                  }}>
+                  }}
+                  onClick={() => setModalOpen(true)}
+                 >
                   Book Free Counselling
                 </button>
 

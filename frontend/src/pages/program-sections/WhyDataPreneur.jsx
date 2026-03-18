@@ -1,5 +1,7 @@
 import { useState } from "react";
 import { useInView, useCounter } from "../../hooks/useInView";
+import EnrollModal from "../../components/EnrollModel";
+// import { useState } from "react";
 
 const GLOBAL_STATS = [
   { num: 2400, suffix: "+", label: "Students Placed" },
@@ -122,9 +124,12 @@ function DiffRow({ d, icon, index, inView }) {
 export default function WhyDataPreneur({ course }) {
   const [ref,      inView]      = useInView(0.1);
   const [refStats, inViewStats] = useInView(0.1);
+  const [modalOpen, setModalOpen] = useState(false);
 
   return (
     <>
+      {/* Enroll modal outside the main section to avoid z-index and overflow issues */}
+      <EnrollModal isOpen={modalOpen} onClose={() => setModalOpen(false)} />
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800;900&display=swap');
         /* ── Tablet (≤ 900px) ── */
@@ -238,7 +243,9 @@ export default function WhyDataPreneur({ course }) {
                   boxShadow: "0 6px 20px rgba(20,41,208,0.28)",
                   transition: "all 0.25s ease",
                   opacity: inView ? 1 : 0,
-                }}>
+                }}
+                onClick={() => setModalOpen(true)}
+              >
                 Start Your Journey →
               </button>
             </div>

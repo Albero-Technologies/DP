@@ -1,6 +1,7 @@
 "use client";
-
+import EnrollModal from "./EnrollModel";
 import { useEffect, useRef, useState } from "react";
+
 
 /* ─── Intersection Observer Hook ─── */
 function useInView(threshold = 0.15) {
@@ -440,6 +441,12 @@ function TimelineItem({ year, title, desc, iconKey, isLast, delay, inView }) {
    MAIN PAGE
 ════════════════════════════════════════════ */
 export default function AboutPage() {
+  /* ── Scroll to top when this page mounts ── */
+  useEffect(() => {
+    document.documentElement.scrollTop = 0;
+    document.body.scrollTop = 0;
+  }, []);
+
   const [heroRef,     heroInView]     = useInView(0.1);
   const [statsRef,    statsInView]    = useInView(0.3);
   const [missionRef,  missionInView]  = useInView(0.15);
@@ -451,8 +458,12 @@ export default function AboutPage() {
 
   const companies = ["Google","Microsoft","Amazon","Flipkart","Paytm","Razorpay","Zomato","HDFC Bank","Accenture","Deloitte","TCS","Infosys","PhonePe","Swiggy","Meesho"];
 
+  // ── Fix 2: Consistent modal state name ──
+  const [modalOpen, setModalOpen] = useState(false);
+
   return (
     <>
+      <EnrollModal isOpen={modalOpen} onClose={() => setModalOpen(false)} />
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600&display=swap');
         @import url('https://api.fontshare.com/v2/css?f[]=clash-display@400,500,600,700&f[]=clash-grotesk@400,500,600&display=swap');
@@ -846,10 +857,17 @@ export default function AboutPage() {
                   </div>
                 ))}
                 <div style={{ display: "flex", gap: 12, marginTop: 8, flexWrap: "wrap" }}>
-                  <button style={{ background: "#fff", color: "#1429D0", border: "none", cursor: "pointer", borderRadius: 12, padding: "14px 28px", fontFamily: "'Clash Grotesk', sans-serif", fontSize: 15, fontWeight: 600, display: "inline-flex", alignItems: "center", gap: 8, transition: "all 0.22s ease", boxShadow: "0 4px 20px rgba(0,0,0,0.15)" }}>
+                  {/* ── Fix 2: was setEnrollModalOpen(true), now correctly setModalOpen(true) ── */}
+                  <button
+                    onClick={() => setModalOpen(true)}
+                    style={{ background: "#fff", color: "#1429D0", border: "none", cursor: "pointer", borderRadius: 12, padding: "14px 28px", fontFamily: "'Clash Grotesk', sans-serif", fontSize: 15, fontWeight: 600, display: "inline-flex", alignItems: "center", gap: 8, transition: "all 0.22s ease", boxShadow: "0 4px 20px rgba(0,0,0,0.15)" }}
+                  >
                     Start Learning Today →
                   </button>
-                  <button style={{ background: "transparent", color: "#fff", border: "1.5px solid rgba(255,255,255,0.4)", cursor: "pointer", borderRadius: 12, padding: "14px 24px", fontFamily: "'Clash Grotesk', sans-serif", fontSize: 15, fontWeight: 500, transition: "all 0.22s ease" }}>
+                  <button
+                    onClick={() => window.open("https://wa.me/919305823308?text=Hi%2C%20I%20want%20to%20know%20more%20about%20your%20programs%20at%20DataPreneur.", "_blank")}
+                    style={{ background: "transparent", color: "#fff", border: "1.5px solid rgba(255,255,255,0.4)", cursor: "pointer", borderRadius: 12, padding: "14px 24px", fontFamily: "'Clash Grotesk', sans-serif", fontSize: 15, fontWeight: 500, transition: "all 0.22s ease" }}
+                  >
                     Talk to Us
                   </button>
                 </div>

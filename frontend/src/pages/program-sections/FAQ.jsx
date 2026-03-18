@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useInView } from "../../hooks/useInView";
+// import EnrollModal from "../../components/EnrollModel";
 
 const PhoneIcon = ({ color }) => (
   <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
@@ -23,6 +24,7 @@ const QuestionIcon = ({ color }) => (
 
 function FAQItem({ faq, index, inView, isOpen, onToggle }) {
   const open = isOpen;
+
 
   return (
     <div style={{
@@ -88,11 +90,15 @@ function FAQItem({ faq, index, inView, isOpen, onToggle }) {
 export default function FAQ({ course }) {
   const [ref, inView] = useInView(0.05);
   const [activeIndex, setActiveIndex] = useState(null);
+  // Enroll modal state
+  // const [modalOpen, setModalOpen] = useState(false);
 
   const handleToggle = (i) => setActiveIndex(prev => prev === i ? null : i);
 
   return (
     <>
+      {/* Enroll modal outside the main section to avoid z-index and overflow issues */}
+      {/* <EnrollModal isOpen={modalOpen} onClose={() => setModalOpen(false)} /> */}
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800;900&display=swap');
         .dp-faq-call:hover  { transform: translateY(-2px) !important; background: #F2F5FF !important; }
@@ -179,6 +185,7 @@ export default function FAQ({ course }) {
                   cursor: "pointer", transition: "all .2s ease",
                   display: "flex", alignItems: "center", gap: "0.5rem",
                 }}
+                onClick={() => window.location.href = "tel:+1234567890"}
               >
                 <PhoneIcon color="#1429D0" />
                 Call Us
@@ -195,6 +202,8 @@ export default function FAQ({ course }) {
                   transition: "all .2s ease",
                   display: "flex", alignItems: "center", gap: "0.5rem",
                 }}
+                // onClick={() => setModalOpen(true)}
+                onClickCapture={()=>window.open("https://wa.me/919305823308?text=Hi%2C%20I%20want%20to%20know%20more%20about%20your%20programs%20at%20DataPreneur.", "_blank")}
               >
                 <ChatIcon color="#fff" />
                 Chat Now

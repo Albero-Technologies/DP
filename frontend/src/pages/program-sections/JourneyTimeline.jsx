@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useInView } from "../../hooks/useInView";
+import EnrollModal from "../../components/EnrollModel";
 
 // ── Journey step SVG icons — mapped by emoji key ──────────────────────────
 const STEP_ICONS = {
@@ -109,9 +110,12 @@ const StepIcon = ({ iconKey, color, index }) => {
 export default function JourneyTimeline({ course }) {
   const [ref, inView]   = useInView(0.05);
   const [hovStep, setHovStep] = useState(null);
+  const [modalOpen, setModalOpen] = useState(false);
 
   return (
     <>
+      {/* Enroll modal outside the main section to avoid z-index and overflow issues */}
+      <EnrollModal isOpen={modalOpen} onClose={() => setModalOpen(false)} />
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800;900&display=swap');
         @media (max-width: 700px) {
@@ -312,6 +316,7 @@ export default function JourneyTimeline({ course }) {
                 boxShadow: "0 8px 24px rgba(20,41,208,0.28)",
                 transition: "all 0.25s ease",
               }}
+              onClick={() => setModalOpen(true)}
             >
               Enroll Now — {course.price}
             </button>

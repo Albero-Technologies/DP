@@ -1,19 +1,20 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { COURSES } from "../data/courses";
+import EnrollModal from "./EnrollModel";
 
 // ─── Brand tokens  color code ────────────────────────────────────────────────
 const B = {
-  primary:  "#1429D0",
-  secondary:"#0E7FDD",
-  hover:    "#1E3A8A",
+  primary: "#1429D0",
+  secondary: "#0E7FDD",
+  hover: "#1E3A8A",
   accentLt: "#BFD2FF",
-  bg1:      "#F5F7FA",
-  bg2:      "#F2F5FF",
-  dark:     "#161619",
-  heading:  "#262832",
-  body:     "#36383e",
-  border:   "rgba(20,41,208,0.12)",
+  bg1: "#F5F7FA",
+  bg2: "#F2F5FF",
+  dark: "#161619",
+  heading: "#262832",
+  body: "#36383e",
+  border: "rgba(20,41,208,0.12)",
 };
 
 // ─── Realistic inline SVG icons ──────────────────────────────────
@@ -60,14 +61,14 @@ const IconBusiness = () => (
 
 const IconCompass = () => (
   <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-    <circle cx="12" cy="12" r="9" stroke="#1429D0" strokeWidth="1.6"/>
-    <circle cx="12" cy="12" r="2" fill="#1429D0"/>
-    <polygon points="16.5,7.5 14,12 12,10 16.5,7.5" fill="#1429D0"/>
-    <polygon points="7.5,16.5 10,12 12,14 7.5,16.5" fill="#0E7FDD" opacity="0.6"/>
-    <line x1="12" y1="3" x2="12" y2="5" stroke="#1429D0" strokeWidth="1.4" strokeLinecap="round"/>
-    <line x1="12" y1="19" x2="12" y2="21" stroke="#1429D0" strokeWidth="1.4" strokeLinecap="round"/>
-    <line x1="3" y1="12" x2="5" y2="12" stroke="#1429D0" strokeWidth="1.4" strokeLinecap="round"/>
-    <line x1="19" y1="12" x2="21" y2="12" stroke="#1429D0" strokeWidth="1.4" strokeLinecap="round"/>
+    <circle cx="12" cy="12" r="9" stroke="#1429D0" strokeWidth="1.6" />
+    <circle cx="12" cy="12" r="2" fill="#1429D0" />
+    <polygon points="16.5,7.5 14,12 12,10 16.5,7.5" fill="#1429D0" />
+    <polygon points="7.5,16.5 10,12 12,14 7.5,16.5" fill="#0E7FDD" opacity="0.6" />
+    <line x1="12" y1="3" x2="12" y2="5" stroke="#1429D0" strokeWidth="1.4" strokeLinecap="round" />
+    <line x1="12" y1="19" x2="12" y2="21" stroke="#1429D0" strokeWidth="1.4" strokeLinecap="round" />
+    <line x1="3" y1="12" x2="5" y2="12" stroke="#1429D0" strokeWidth="1.4" strokeLinecap="round" />
+    <line x1="19" y1="12" x2="21" y2="12" stroke="#1429D0" strokeWidth="1.4" strokeLinecap="round" />
   </svg>
 );
 
@@ -143,21 +144,21 @@ const MEGA_MENU = [
   {
     label: "Programs",
     categories: [
-      { key: "data",     label: "Data & Analytics",      Icon: IconDataAnalytics, courses: [] },
-      { key: "ai",       label: "AI & Machine Learning",  Icon: IconAI,            courses: [] },
-      { key: "finance",  label: "Finance & Banking",      Icon: IconFinance,       courses: [] },
-      { key: "business", label: "Business Analytics",     Icon: IconBusiness,      courses: [] },
+      { key: "data", label: "Data & Analytics", Icon: IconDataAnalytics, courses: [] },
+      { key: "ai", label: "AI & Machine Learning", Icon: IconAI, courses: [] },
+      { key: "finance", label: "Finance & Banking", Icon: IconFinance, courses: [] },
+      { key: "business", label: "Business Analytics", Icon: IconBusiness, courses: [] },
     ],
   },
   {
     label: "Why DataPreneur", simple: true,
     links: [
-      { Icon: IconCompass,   title: "Our Approach",      sub: "Small cohorts, real outcomes"          },
-      { Icon: IconCertified, title: "Microsoft Certified",sub: "Globally recognized credentials"      },
-      { Icon: IconPlacement, title: "Placement Support",  sub: "180+ hiring partners"                 },
-      { Icon: IconMentors,   title: "Our Mentors",        sub: "Industry professionals, not teachers" },
-      { Icon: IconOutcomes,  title: "Student Outcomes",   sub: "94% placement rate"                   },
-      { Icon: IconSuccess,   title: "Success Stories",    sub: "Real journeys, real salaries"         },
+      { Icon: IconCompass, title: "Our Approach", sub: "Small cohorts, real outcomes" },
+      { Icon: IconCertified, title: "Microsoft Certified", sub: "Globally recognized credentials" },
+      { Icon: IconPlacement, title: "Placement Support", sub: "180+ hiring partners" },
+      { Icon: IconMentors, title: "Our Mentors", sub: "Industry professionals, not teachers" },
+      { Icon: IconOutcomes, title: "Student Outcomes", sub: "94% placement rate" },
+      { Icon: IconSuccess, title: "Success Stories", sub: "Real journeys, real salaries" },
     ],
   },
 ];
@@ -165,32 +166,32 @@ const MEGA_MENU = [
 // Small utility icons
 const ChevronDown = () => (
   <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-    <polyline points="6 9 12 15 18 9"/>
+    <polyline points="6 9 12 15 18 9" />
   </svg>
 );
 const ChevronRight = () => (
   <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-    <polyline points="9 18 15 12 9 6"/>
+    <polyline points="9 18 15 12 9 6" />
   </svg>
 );
 const ArrowRight = ({ size = 13 }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-    <line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/>
+    <line x1="5" y1="12" x2="19" y2="12" /><polyline points="12 5 19 12 12 19" />
   </svg>
 );
 const PhoneIcon = () => (
   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.21 12a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/>
+    <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.21 12a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z" />
   </svg>
 );
 const MenuIcon = () => (
   <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-    <line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/>
+    <line x1="3" y1="6" x2="21" y2="6" /><line x1="3" y1="12" x2="21" y2="12" /><line x1="3" y1="18" x2="21" y2="18" />
   </svg>
 );
 const XIcon = () => (
   <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-    <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+    <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
   </svg>
 );
 
@@ -203,7 +204,7 @@ function MobileSection({ label, children, accent, border }) {
         {label}
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={accent} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"
           style={{ transition: "transform 0.2s", transform: open ? "rotate(90deg)" : "none" }}>
-          <polyline points="9 18 15 12 9 6"/>
+          <polyline points="9 18 15 12 9 6" />
         </svg>
       </div>
       {open && (
@@ -217,12 +218,14 @@ function MobileSection({ label, children, accent, border }) {
 
 // ─── Component ───────────────────────────────────────────────────
 export default function Navbar() {
-  const [scrolled,    setScrolled]    = useState(false);
-  const [openMenu,    setOpenMenu]    = useState(null);
-  const [activeCat,   setActiveCat]   = useState({});
-  const [mobileOpen,  setMobileOpen]  = useState(false);
+  const [scrolled, setScrolled] = useState(false);
+  const [openMenu, setOpenMenu] = useState(null);
+  const [activeCat, setActiveCat] = useState({});
+  const [mobileOpen, setMobileOpen] = useState(false);
   const closeTimer = useRef(null);
-  const navigate   = useNavigate();
+  const navigate = useNavigate();
+  // Enroll modal state
+  const [modalOpen, setModalOpen] = useState(false);
 
   // Populate course lists from COURSES data
   MEGA_MENU[0].categories[0].courses = COURSES.filter(c => c.cat.includes("data"));
@@ -255,9 +258,9 @@ export default function Navbar() {
     return () => { document.body.style.overflow = ""; };
   }, [mobileOpen]);
 
-  const open  = useCallback((lbl) => { clearTimeout(closeTimer.current); setOpenMenu(lbl); }, []);
+  const open = useCallback((lbl) => { clearTimeout(closeTimer.current); setOpenMenu(lbl); }, []);
   const close = useCallback(() => { closeTimer.current = setTimeout(() => setOpenMenu(null), 130); }, []);
-  const stay  = useCallback(() => clearTimeout(closeTimer.current), []);
+  const stay = useCallback(() => clearTimeout(closeTimer.current), []);
 
   const scrollTo = (id) => {
     setMobileOpen(false);
@@ -273,6 +276,8 @@ export default function Navbar() {
 
   return (
     <>
+        {/* Enroll modal outside the main section to avoid z-index and overflow issues */}
+      <EnrollModal isOpen={modalOpen} onClose={() => setModalOpen(false)} />
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800;900&display=swap');
         @keyframes dropdownIn {
@@ -497,7 +502,7 @@ export default function Navbar() {
             </a>
 
             <Link className="dp-nav-signin"
-             to="/signin"
+              to="/signin"
               style={{
                 padding: "0.46rem 1.1rem", borderRadius: 8,
                 border: `1.5px solid rgba(20,41,208,0.18)`, background: "transparent",
@@ -512,6 +517,8 @@ export default function Navbar() {
 
             <button
               className="dp-nav-enroll"
+              // onClick={() => scrollTo("contact")}
+              onClick={() => setModalOpen(true)}
               style={{
                 padding: "0.5rem 1.3rem", borderRadius: 8, border: "none",
                 background: B.primary, color: "#fff",
@@ -715,14 +722,14 @@ export default function Navbar() {
             <Link to="/about" style={{ textDecoration: "none" }} onClick={() => setMobileOpen(false)}>
               <div className="dp-mobile-section-header" style={{ borderBottom: `1px solid ${B.border}` }}>
                 About Us
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={B.primary} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={B.primary} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6" /></svg>
               </div>
             </Link>
 
             {/* Contact */}
             <div className="dp-mobile-section-header" style={{ borderBottom: "none" }} onClick={() => { scrollTo("contact"); setMobileOpen(false); }}>
               Contact
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={B.primary} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={B.primary} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6" /></svg>
             </div>
 
             {/* CTA buttons */}
@@ -737,17 +744,19 @@ export default function Navbar() {
               }}>
                 Sign In
               </Link>
-              <Link to="/signup" style={{
-                flex: 1, padding: "0.72rem", borderRadius: 8,
-                border: "none", background: B.primary, color: "#fff",
-                fontWeight: 700, cursor: "pointer",
-                fontFamily: "'DM Sans', sans-serif", fontSize: "0.88rem",
-                boxShadow: "0 4px 14px rgba(20,41,208,0.28)",
-                textDecoration: "none", textAlign: "center", display: "flex",
-                alignItems: "center", justifyContent: "center",
-              }}>
+              <button
+                // onClick={() => { scrollTo("contact"); setMobileOpen(false); }}
+                onClick={() => setModalOpen(true)}
+                style={{
+                  flex: 1, padding: "0.72rem", borderRadius: 8,
+                  border: "none", background: "#1429D0", color: "#fff",
+                  fontWeight: 700, cursor: "pointer",
+                  fontFamily: "'DM Sans', sans-serif", fontSize: "0.88rem",
+                  boxShadow: "0 4px 14px rgba(20,41,208,0.28)",
+                  textAlign: "center",
+                }}>
                 Enroll Now
-              </Link>
+              </button>
             </div>
           </div>
         )}

@@ -1,4 +1,7 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+
+// Replace with your URL from your .env
+const APPS_SCRIPT_URL = import.meta.env.VITE_APPS_SCRIPT_URL || "";
 
 const CompanyLogo = ({ name }) => {
   const logos = {
@@ -67,27 +70,67 @@ const companies = [
   { name: "IBM" }, { name: "Deloitte" },
 ];
 
+const RESET_DELAY = 5000; // ms — thank you shows for 5 seconds
+
 export default function CTASection() {
   const [formData, setFormData] = useState({
     fullName: "", email: "", countryCode: "+91", phone: "", program: "Not Sure Yet",
   });
   const [focused, setFocused] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [submitted, setSubmitted] = useState(false);
+  const [countdown, setCountdown] = useState(RESET_DELAY / 1000);
+
+  // Auto-reset after RESET_DELAY ms
+  useEffect(() => {
+    if (!submitted) return;
+
+    // Countdown ticker
+    setCountdown(RESET_DELAY / 1000);
+    const ticker = setInterval(() => {
+      setCountdown(prev => {
+        if (prev <= 1) { clearInterval(ticker); return 0; }
+        return prev - 1;
+      });
+    }, 1000);
+
+    // Reset form
+    const reset = setTimeout(() => {
+      setSubmitted(false);
+      setFormData({ fullName: "", email: "", countryCode: "+91", phone: "", program: "Not Sure Yet" });
+    }, RESET_DELAY);
+
+    return () => { clearInterval(ticker); clearTimeout(reset); };
+  }, [submitted]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    alert("Thank you for registering! We will contact you soon.");
-    setFormData({ fullName: "", email: "", countryCode: "+91", phone: "", program: "Not Sure Yet" });
+    setLoading(true);
+
+    try {
+      await fetch(APPS_SCRIPT_URL, {
+        method: "POST",
+        mode: "no-cors",
+        headers: { "Content-Type": "text/plain" },
+        body: JSON.stringify(formData),
+      });
+
+      setSubmitted(true);
+    } catch (err) {
+      alert("Something went wrong. Please try again later.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   const inputBase = (name) => ({
     width: "100%",
     padding: "14px 13px",
-    // 16px prevents iOS Safari from auto-zooming on input focus
     fontSize: "16px",
     fontFamily: "'DM Sans', sans-serif",
     border: `1.5px solid ${focused === name ? "#1429D0" : "rgba(20,41,208,0.15)"}`,
@@ -106,213 +149,98 @@ export default function CTASection() {
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800;900&display=swap');
 
-        .dp-cta-section *,
-        .dp-cta-section *::before,
-        .dp-cta-section *::after { box-sizing: border-box; }
+        .dp-cta-section *, .dp-cta-section *::before, .dp-cta-section *::after { box-sizing: border-box; }
 
-        @keyframes ctaScroll {
-          0%   { transform: translateX(0); }
-          100% { transform: translateX(-50%); }
-        }
-        .dp-cta-track {
-          display: flex !important;
-          gap: 10px;
-          width: fit-content;
-          animation: ctaScroll 18s linear infinite;
-        }
-        .dp-cta-scrollwrap:hover .dp-cta-track {
-          animation-play-state: paused;
-        }
-        .dp-cta-submitbtn:hover {
-          background: #0e1fb0 !important;
-          transform: translateY(-2px) !important;
-          box-shadow: 0 8px 28px rgba(20,41,208,0.38) !important;
-        }
+        @keyframes ctaScroll { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
+        .dp-cta-track { display: flex !important; gap: 10px; width: fit-content; animation: ctaScroll 18s linear infinite; }
+        .dp-cta-scrollwrap:hover .dp-cta-track { animation-play-state: paused; }
+        .dp-cta-submitbtn:hover:not(:disabled) { background: #0e1fb0 !important; transform: translateY(-2px) !important; box-shadow: 0 8px 28px rgba(20,41,208,0.38) !important; }
 
-        /* ── Two-column layout ── */
-        .dp-cta-grid {
-          max-width: 1200px;
-          margin: 0 auto;
-          padding: 0 40px;
-          display: grid;
-          grid-template-columns: 1.2fr 1fr;
-          gap: 64px;
-          align-items: center;
-          position: relative;
-          z-index: 1;
-        }
+        .dp-cta-grid { max-width: 1200px; margin: 0 auto; padding: 0 40px; display: grid; grid-template-columns: 1.2fr 1fr; gap: 64px; align-items: center; position: relative; z-index: 1; }
 
-        /* ── Tablet (≤1024px): stack columns ── */
-        @media (max-width: 1024px) {
-          .dp-cta-grid {
-            grid-template-columns: 1fr;
-            gap: 48px;
-            padding: 0 32px;
-          }
-        }
+        @keyframes ctaFadeIn { from { opacity: 0; transform: scale(0.96); } to { opacity: 1; transform: scale(1); } }
+        .dp-cta-success { animation: ctaFadeIn 0.35s ease-out both; }
 
-        /* ── Mobile (≤600px) ── */
+        @media (max-width: 1024px) { .dp-cta-grid { grid-template-columns: 1fr; gap: 48px; padding: 0 32px; } }
         @media (max-width: 600px) {
           .dp-cta-grid { padding: 0 16px; gap: 36px; }
           .dp-cta-form-box { padding: 32px 20px !important; }
           .dp-cta-phone-row { flex-direction: column !important; }
           .dp-cta-phone-row select { width: 100% !important; }
         }
-
-        /* ── Very small phones (≤380px) ── */
-        @media (max-width: 380px) {
-          .dp-cta-form-box { padding: 24px 16px !important; }
-        }
       `}</style>
 
-      <section id="contact" className="dp-cta-section" style={{
-        padding: "90px 0",
-        background: "#F5F7FA",
-        position: "relative",
-        fontFamily: "'DM Sans', sans-serif",
-        overflow: "clip",
-      }}>
-
+      <section id="contact" className="dp-cta-section" style={{ padding: "90px 0", background: "#F5F7FA", position: "relative", fontFamily: "'DM Sans', sans-serif", overflow: "clip" }}>
+        
         {/* Blobs */}
         <div style={{ position: "absolute", top: -60, right: -50, width: 380, height: 380, borderRadius: "50%", background: "radial-gradient(circle, rgba(20,41,208,0.07) 0%, transparent 70%)", pointerEvents: "none", zIndex: 0 }} />
         <div style={{ position: "absolute", bottom: -60, left: -40, width: 300, height: 300, borderRadius: "50%", background: "radial-gradient(circle, rgba(14,127,221,0.06) 0%, transparent 70%)", pointerEvents: "none", zIndex: 0 }} />
 
         <div className="dp-cta-grid">
-
-          {/* ── LEFT ── */}
+          {/* LEFT CONTENT */}
           <div style={{ display: "flex", flexDirection: "column", gap: 24, minWidth: 0 }}>
-
             <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
               <span style={{ width: 22, height: 2, background: "#1429D0", borderRadius: 2, display: "block", flexShrink: 0 }} />
               <span style={{ fontSize: "0.72rem", fontWeight: 700, color: "#1429D0", letterSpacing: "2px", textTransform: "uppercase" }}>Start Your Journey</span>
             </div>
-
             <h2 style={{ fontSize: "clamp(1.7rem, 3vw, 2.6rem)", fontWeight: 900, color: "#161619", lineHeight: 1.15, letterSpacing: "-0.03em", margin: 0 }}>
-              Transform your career with programs{" "}
-              <span style={{ color: "#1429D0" }}>that helped 12,000+</span>{" "}
-             professionals land top roles.
+              Transform your career with programs <span style={{ color: "#1429D0" }}>that helped 12,000+</span> professionals land top roles.
             </h2>
-
-            <p style={{ fontSize: "1rem", color: "#36383e", lineHeight: 1.75, margin: 0 }}>
-              Book a free counselling session today. No commitments — just a conversation about your goals and how we can help.
-            </p>
-
-            {/* Scroll strip */}
-            <div
-              className="dp-cta-scrollwrap"
-              style={{ position: "relative", overflow: "hidden", width: "100%", height: 46, display: "flex", alignItems: "center" }}
-            >
+            <p style={{ fontSize: "1rem", color: "#36383e", lineHeight: 1.75, margin: 0 }}>Book a free counselling session today. No commitments — just a conversation about your goals and how we can help.</p>
+            
+            <div className="dp-cta-scrollwrap" style={{ position: "relative", overflow: "hidden", width: "100%", height: 46, display: "flex", alignItems: "center" }}>
               <div style={{ position: "absolute", left: 0, top: 0, bottom: 0, width: 60, background: "linear-gradient(90deg, #F5F7FA, transparent)", zIndex: 2, pointerEvents: "none" }} />
-              <div style={{ position: "absolute", right: 0, top: 0, bottom: 0, width: 60, background: "linear-gradient(270deg, #F5F7FA, transparent)", zIndex: 2, pointerEvents: "none" }} />
               <div className="dp-cta-track">
                 {[...companies, ...companies].map((c, i) => (
                   <div key={i} style={{ display: "inline-flex", alignItems: "center", gap: 7, background: "#fff", border: "1.5px solid rgba(20,41,208,0.12)", padding: "7px 13px", borderRadius: 100, fontSize: "0.8rem", fontWeight: 600, color: "#262832", whiteSpace: "nowrap", flexShrink: 0, boxShadow: "0 2px 8px rgba(20,41,208,0.07)" }}>
-                    <CompanyLogo name={c.name} />
-                    {c.name}
-                    <div style={{ width: 6, height: 6, borderRadius: "50%", background: "#10B981", flexShrink: 0 }} />
+                    <CompanyLogo name={c.name} /> {c.name}
                   </div>
                 ))}
               </div>
             </div>
           </div>
 
-          {/* ── RIGHT — FORM ── */}
-          <div
-            className="dp-cta-form-box"
-            style={{
-              background: "#F2F5FF",
-              borderRadius: 22,
-              padding: "40px 32px",
-              boxShadow: "0 8px 40px rgba(20,41,208,0.12)",
-              border: "1.5px solid rgba(20,41,208,0.12)",
-              minWidth: 0,
-            }}
-          >
-            <h3 style={{ fontSize: "1.05rem", fontWeight: 800, color: "#161619", margin: "0 0 24px", textAlign: "center", lineHeight: 1.4 }}>
-              Upgrade Your Skills to Achieve Your Dream Job
-            </h3>
-
-            <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: 20 }}>
-
-              <div style={{ display: "flex", flexDirection: "column", gap: 5 }}>
-                <label style={{ fontSize: "0.75rem", fontWeight: 600, color: "#262832" }}>Full Name</label>
-                <input
-                  type="text" name="fullName" placeholder="John Doe"
-                  value={formData.fullName} onChange={handleChange}
-                  onFocus={() => setFocused("fullName")} onBlur={() => setFocused(null)}
-                  required style={inputBase("fullName")}
-                />
+          {/* RIGHT BOX */}
+          <div className="dp-cta-form-box" style={{ background: "#F2F5FF", borderRadius: 22, padding: "40px 32px", boxShadow: "0 8px 40px rgba(20,41,208,0.12)", border: "1.5px solid rgba(20,41,208,0.12)", minWidth: 0, minHeight: 400, display: "flex", alignItems: "center", justifyContent: "center" }}>
+            
+            {submitted ? (
+              /* SUCCESS MESSAGE VIEW */
+              <div className="dp-cta-success" style={{ textAlign: "center", width: "100%" }}>
+                <div style={{ width: 64, height: 64, borderRadius: "50%", background: "#DCFCE7", color: "#16A34A", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 20px", fontSize: "2rem" }}>✅</div>
+                <h3 style={{ fontSize: "1.4rem", fontWeight: 800, color: "#161619", marginBottom: 12 }}>You're all set, {formData.fullName.split(" ")[0]}!</h3>
+                <p style={{ fontSize: "0.95rem", color: "#6B7280", lineHeight: 1.6, marginBottom: 24 }}>Check your inbox — a confirmation email is on its way from DataPreneur.</p>
+                <div style={{ background: "#fff", padding: "14px", borderRadius: 12, border: "1px solid #E5E7EB", color: "#1429D0", fontWeight: 700, fontSize: "0.85rem", marginBottom: 16 }}>Our counsellor will reach out within 24 hours</div>
+                <p style={{ fontSize: "0.78rem", color: "#9CA3AF", margin: 0 }}>Form resets in {countdown}s…</p>
               </div>
-
-              <div style={{ display: "flex", flexDirection: "column", gap: 5 }}>
-                <label style={{ fontSize: "0.75rem", fontWeight: 600, color: "#262832" }}>Email Address</label>
-                <input
-                  type="email" name="email" placeholder="abc@gmail.com"
-                  value={formData.email} onChange={handleChange}
-                  onFocus={() => setFocused("email")} onBlur={() => setFocused(null)}
-                  required style={inputBase("email")}
-                />
+            ) : (
+              /* FORM VIEW */
+              <div style={{ width: "100%" }}>
+                <h3 style={{ fontSize: "1.05rem", fontWeight: 800, color: "#161619", margin: "0 0 24px", textAlign: "center" }}>Upgrade Your Skills to Achieve Your Dream Job</h3>
+                <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: 20 }}>
+                  <div>
+                    <label style={{ fontSize: "0.75rem", fontWeight: 600, color: "#262832", display: "block", marginBottom: 5 }}>Full Name</label>
+                    <input type="text" name="fullName" placeholder="John Doe" value={formData.fullName} onChange={handleChange} onFocus={() => setFocused("fullName")} onBlur={() => setFocused(null)} required style={inputBase("fullName")} />
+                  </div>
+                  <div>
+                    <label style={{ fontSize: "0.75rem", fontWeight: 600, color: "#262832", display: "block", marginBottom: 5 }}>Email Address</label>
+                    <input type="email" name="email" placeholder="abc@gmail.com" value={formData.email} onChange={handleChange} onFocus={() => setFocused("email")} onBlur={() => setFocused(null)} required style={inputBase("email")} />
+                  </div>
+                  <div>
+                    <label style={{ fontSize: "0.75rem", fontWeight: 600, color: "#262832", display: "block", marginBottom: 5 }}>Contact Number</label>
+                    <div className="dp-cta-phone-row" style={{ display: "flex", gap: 8 }}>
+                      <select name="countryCode" value={formData.countryCode} onChange={handleChange} style={{ ...inputBase("cc"), width: 90, flexShrink: 0 }}><option value="+91">IN +91</option><option value="+1">US +1</option></select>
+                      <input type="tel" name="phone" placeholder="81234 56789" value={formData.phone} onChange={handleChange} onFocus={() => setFocused("phone")} onBlur={() => setFocused(null)} required style={{ ...inputBase("phone"), flex: 1 }} />
+                    </div>
+                  </div>
+                  <div>
+                    <label style={{ fontSize: "0.75rem", fontWeight: 600, color: "#262832", display: "block", marginBottom: 5 }}>Program Preference</label>
+                    <select name="program" value={formData.program} onChange={handleChange} style={inputBase("program")}><option>Not Sure Yet</option><option>Data Analytics</option><option>Data Science and AI</option></select>
+                  </div>
+                  <button type="submit" disabled={loading} className="dp-cta-submitbtn" style={{ width: "100%", padding: "14px 20px", fontSize: "0.95rem", fontWeight: 700, color: "#fff", background: "#1429D0", border: "none", borderRadius: 10, cursor: "pointer", marginTop: 4 }}>{loading ? "Submitting..." : "Book Free Counselling →"}</button>
+                </form>
               </div>
-
-              <div style={{ display: "flex", flexDirection: "column", gap: 5 }}>
-                <label style={{ fontSize: "0.75rem", fontWeight: 600, color: "#262832" }}>Contact Number</label>
-                {/* dp-cta-phone-row: stacks to column on very small phones */}
-                <div className="dp-cta-phone-row" style={{ display: "flex", gap: 8 }}>
-                  <select
-                    name="countryCode" value={formData.countryCode} onChange={handleChange}
-                    onFocus={() => setFocused("cc")} onBlur={() => setFocused(null)}
-                    style={{ ...inputBase("cc"), width: 90, flexShrink: 0, cursor: "pointer" }}
-                  >
-                    <option value="+91">IN +91</option>
-                    <option value="+1">US +1</option>
-                    <option value="+44">UK +44</option>
-                    <option value="+86">CN +86</option>
-                  </select>
-                  <input
-                    type="tel" name="phone" placeholder="81234 56789"
-                    value={formData.phone} onChange={handleChange}
-                    onFocus={() => setFocused("phone")} onBlur={() => setFocused(null)}
-                    required style={{ ...inputBase("phone"), flex: 1 }}
-                  />
-                </div>
-              </div>
-
-              <div style={{ display: "flex", flexDirection: "column", gap: 5 }}>
-                <label style={{ fontSize: "0.75rem", fontWeight: 600, color: "#262832" }}>Program Preference</label>
-                <select
-                  name="program" value={formData.program} onChange={handleChange}
-                  onFocus={() => setFocused("program")} onBlur={() => setFocused(null)}
-                  style={{ ...inputBase("program"), cursor: "pointer" }}
-                >
-                  <option>Not Sure Yet</option>
-                  <option>Data Analytics</option>
-                  <option>Business Analytics</option>
-                  <option>Data Science and AI</option>
-                  <option>Agentic AI &amp; Prompt Engineering</option>
-                  <option>Investment Banking</option>
-                </select>
-              </div>
-
-              <button
-                type="submit"
-                className="dp-cta-submitbtn"
-                style={{
-                  width: "100%", padding: "14px 20px",
-                  fontSize: "0.95rem", fontWeight: 700,
-                  fontFamily: "'DM Sans', sans-serif",
-                  color: "#fff", background: "#1429D0",
-                  border: "none", borderRadius: 10, cursor: "pointer",
-                  marginTop: 4, boxShadow: "0 4px 20px rgba(20,41,208,0.28)",
-                  transition: "all 0.22s ease",
-                  touchAction: "manipulation",
-                  WebkitTapHighlightColor: "transparent",
-                }}
-              >
-                Book Free Counselling →
-              </button>
-            </form>
+            )}
           </div>
-
         </div>
       </section>
     </>

@@ -443,7 +443,7 @@ export default function FAQSection() {
                   Our expert counselors are available for a free 1-on-1 session to
                   help you choose the right program.
                 </div>
-                <button className="faq-cta-btn">
+                <button className="faq-cta-btn" onClick={() => scrollTo({ top: document.getElementById("contact").offsetTop - 80, behavior: "smooth" })}>
                   Book a Free Session →
                 </button>
               </div>

@@ -340,7 +340,7 @@ export default function ProcessSection() {
               <div className="ps-strip-heading">Ready to start your journey?</div>
               <div className="ps-strip-sub">Join 2,400+ alumni who transformed their careers with DataPreneur.</div>
             </div>
-            <button className="ps-strip-btn">
+            <button className="ps-strip-btn" onClick={() => scrollTo({ top: document.getElementById("contact").offsetTop - 80, behavior: "smooth" })}>
               Enroll Now →
             </button>
           </div>

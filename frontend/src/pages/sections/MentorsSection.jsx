@@ -312,7 +312,7 @@ export default function MentorsSection() {
         }
       `}</style>
 
-      <section className="ms">
+      <section className="ms"  id="mentors">
         <div className="ms-bg" />
         <div className="ms-dots" />
 
