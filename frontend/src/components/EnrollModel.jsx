@@ -1,10 +1,6 @@
 import { useState } from "react";
 
-// ─────────────────────────────────────────────────────────────
-//  STEP 1: After deploying your Google Apps Script, paste the
-//  Web App URL below (replace the placeholder).
-//  Deploy → New Deployment → Web App → Execute as: Me → Anyone
-// ─────────────────────────────────────────────────────────────
+
 const APPS_SCRIPT_URL = import.meta.env.VITE_APPS_SCRIPT_URL;
 
 export default function EnrollModal({ isOpen, onClose }) {
@@ -23,6 +19,7 @@ export default function EnrollModal({ isOpen, onClose }) {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
+
 
   const handleSubmit = async (e) => {
     e.preventDefault();
