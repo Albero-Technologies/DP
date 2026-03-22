@@ -1,7 +1,5 @@
-import { useState } from "react";
-import useFetch from "../../hooks/useFetch";
-import { getAllCounselorPayments, getPendingPayments, updatePaymentApproval, sendPaymentReminder } from "../../api/counselor.api";
-import { getCounselorStudents } from "../../api/counselor.api";
+import { useState, useEffect } from "react";
+import API from "../../api/axiosInstance";
 
 const STATUS_STYLE = {
   PENDING:  { bg: "#fef9c3", text: "#92400e" },
@@ -9,140 +7,210 @@ const STATUS_STYLE = {
   REJECTED: { bg: "#fee2e2", text: "#dc2626" },
 };
 
+// Invoice generator (same as admin)
+function generateInvoice(payment) {
+  const student  = payment.invoice?.enrollment?.student;
+  const course   = payment.invoice?.enrollment?.batch?.course;
+  const date     = new Date(payment.paidAt || payment.createdAt).toLocaleDateString("en-IN", { dateStyle: "long" });
+  const invoiceNo = `INV-${payment._id?.slice(-8).toUpperCase()}`;
+
+  const html = `<!DOCTYPE html>
+<html><head><meta charset="UTF-8"/><title>Invoice ${invoiceNo}</title>
+<style>
+  body{font-family:Arial,sans-serif;margin:0;padding:40px;color:#1a1a1a}
+  .header{display:flex;justify-content:space-between;align-items:flex-start;border-bottom:3px solid #6366f1;padding-bottom:20px;margin-bottom:24px}
+  .brand{font-size:26px;font-weight:900;color:#6366f1}.brand span{color:#1a1a1a}
+  .meta{text-align:right}.meta p{margin:2px 0;font-size:13px;color:#6b7280}.meta strong{color:#1a1a1a}
+  .section{margin-bottom:20px}.section h3{font-size:11px;text-transform:uppercase;letter-spacing:1px;color:#9ca3af;margin:0 0 8px}
+  .row{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #f1f5f9;font-size:14px}.row:last-child{border-bottom:none}
+  .label{color:#6b7280}.value{font-weight:600}
+  .amount-box{background:#f0f4ff;border:2px solid #6366f1;border-radius:10px;padding:20px 24px;margin:24px 0;display:flex;justify-content:space-between;align-items:center}
+  .amount-box .big{font-size:28px;font-weight:900;color:#6366f1}
+  .status{display:inline-block;padding:3px 12px;border-radius:99px;font-size:12px;font-weight:700;background:#dcfce7;color:#166534}
+  .footer{margin-top:40px;text-align:center;font-size:11px;color:#9ca3af;border-top:1px solid #e5e7eb;padding-top:16px}
+</style></head><body>
+<div class="header">
+  <div><div class="brand">EdTech<span>CRM</span></div><div style="font-size:13px;color:#6b7280;margin-top:4px">PAYMENT INVOICE</div></div>
+  <div class="meta">
+    <p>Invoice No: <strong>${invoiceNo}</strong></p>
+    <p>Date: <strong>${date}</strong></p>
+    <p>Status: <span class="status">${payment.approvalStatus}</span></p>
+  </div>
+</div>
+<div class="section">
+  <h3>Student Details</h3>
+  <div class="row"><span class="label">Name</span><span class="value">${student?.name || "—"}</span></div>
+  <div class="row"><span class="label">Email</span><span class="value">${student?.email || "—"}</span></div>
+  ${student?.phone ? `<div class="row"><span class="label">Phone</span><span class="value">${student.phone}</span></div>` : ""}
+</div>
+<div class="section">
+  <h3>Course Details</h3>
+  <div class="row"><span class="label">Course</span><span class="value">${course?.title || "—"}</span></div>
+  <div class="row"><span class="label">Payment Method</span><span class="value">${payment.paymentMethod || "UPI"}</span></div>
+  ${payment.transactionId ? `<div class="row"><span class="label">Transaction ID</span><span class="value">${payment.transactionId}</span></div>` : ""}
+</div>
+<div class="amount-box">
+  <div>
+    <div style="font-size:13px;color:#6b7280;margin-bottom:4px">Amount Paid</div>
+    <div class="big">₹${payment.amount?.toLocaleString("en-IN")}</div>
+  </div>
+  <span class="status">${payment.approvalStatus}</span>
+</div>
+<div class="footer">This is a computer-generated invoice. No signature required.<br/>EdTech CRM · Powered by DataPreneur</div>
+</body></html>`;
+
+  const win = window.open("", "_blank");
+  win.document.write(html);
+  win.document.close();
+  setTimeout(() => win.print(), 500);
+}
+
 export default function PaymentApprovalsPage() {
-  const { data: allPayments, loading, error, refetch } = useFetch(getAllCounselorPayments);
-  const { data: students } = useFetch(getCounselorStudents);
-  const [filter, setFilter] = useState("PENDING");
-  const [updating, setUpdating] = useState(null);
-  const [reminderStudent, setReminderStudent] = useState("");
-  const [reminderMsg, setReminderMsg] = useState("");
-  const [sending, setSending] = useState(false);
+  const [payments, setPayments] = useState([]);
+  const [loading,  setLoading]  = useState(true);
+  const [error,    setError]    = useState("");
+  const [filter,   setFilter]   = useState("ALL");
+
+  const fetchPayments = () => {
+    setLoading(true);
+    // Get my students first, then their payments
+    API.get("/counselor/students")
+      .then(async r => {
+        const students = r.data.data || [];
+        if (!students.length) { setPayments([]); return; }
+
+        const studentIds = students.map(s => s._id);
+        // Get enrollments of my students
+        const enrollRes = await API.get("/enrollments", { params: { studentId: studentIds[0] } });
+        
+        // For each student, get their payment data
+        const allPayments = [];
+        for (const student of students) {
+          try {
+            const res = await API.get(`/admin/payments/${student._id}`);
+            const { payments: pays = [], invoices = [] } = res.data.data || {};
+            pays.forEach(p => {
+              // Attach student info if not already populated
+              if (p.invoice && typeof p.invoice === "object") {
+                if (p.invoice.enrollment && typeof p.invoice.enrollment === "object") {
+                  if (!p.invoice.enrollment.student) {
+                    p.invoice.enrollment.student = student;
+                  }
+                }
+              }
+              allPayments.push(p);
+            });
+          } catch {}
+        }
+        setPayments(allPayments);
+      })
+      .catch(err => setError(err?.response?.data?.message || "Failed to load payments"))
+      .finally(() => setLoading(false));
+  };
+
+  useEffect(() => { fetchPayments(); }, []);
 
   const filtered = filter === "ALL"
-    ? (allPayments || [])
-    : (allPayments || []).filter(p => p.approvalStatus === filter);
+    ? payments
+    : payments.filter(p => p.approvalStatus === filter);
 
-  const pendingCount = allPayments?.filter(p => p.approvalStatus === "PENDING").length || 0;
-
-  const handleApproval = async (id, status) => {
-    setUpdating(id);
-    try { await updatePaymentApproval(id, status); refetch(); }
-    catch (err) { alert(err.response?.data?.message || "Failed"); }
-    finally { setUpdating(null); }
-  };
-
-  const handleReminder = async (e) => {
-    e.preventDefault();
-    if (!reminderStudent) return alert("Please select a student");
-    setSending(true);
-    try {
-      await sendPaymentReminder({ studentId: reminderStudent, message: reminderMsg });
-      alert("✅ Reminder sent successfully!");
-      setReminderStudent(""); setReminderMsg("");
-    } catch (err) { alert(err.response?.data?.message || "Failed to send reminder"); }
-    finally { setSending(false); }
-  };
+  const totalPaid    = payments.filter(p => p.approvalStatus === "APPROVED").reduce((s, p) => s + (p.amount || 0), 0);
+  const totalPending = payments.filter(p => p.approvalStatus === "PENDING").reduce((s, p) => s + (p.amount || 0), 0);
+  const pendingCount = payments.filter(p => p.approvalStatus === "PENDING").length;
 
   return (
     <div>
       <div className="admin-page-header">
-        <div><h1>Payments</h1><p>Approve or reject student payment submissions</p></div>
+        <div><h1>Payments</h1><p>Your students' payment history</p></div>
         <span className="admin-pill" style={{ background: pendingCount > 0 ? "#fef9c3" : "#f3f4f6", color: pendingCount > 0 ? "#92400e" : "#6b7280" }}>
           {pendingCount} pending
         </span>
       </div>
 
-      {/* Payment Reminder */}
-      <section className="admin-section" style={{ marginBottom: 24 }}>
-        <h2>💳 Send Payment Reminder</h2>
-        <form onSubmit={handleReminder} style={{ display: "grid", gridTemplateColumns: "1fr 1fr auto", gap: 12, alignItems: "end", marginTop: 12 }}>
-          <div>
-            <label style={{ fontSize: 12, color: "#6b7280", display: "block", marginBottom: 5, fontWeight: 600 }}>Select Student</label>
-            <select value={reminderStudent} onChange={e => setReminderStudent(e.target.value)}
-              style={{ width: "100%", padding: "10px 14px", borderRadius: 8, border: "1px solid #e5e7eb", fontSize: 14 }}>
-              <option value="">Choose student...</option>
-              {students?.map(s => (
-                <option key={s._id} value={s._id}>{s.name} — {s.email}</option>
-              ))}
-            </select>
-          </div>
-          <div>
-            <label style={{ fontSize: 12, color: "#6b7280", display: "block", marginBottom: 5, fontWeight: 600 }}>Message (optional)</label>
-            <input value={reminderMsg} onChange={e => setReminderMsg(e.target.value)}
-              placeholder="Custom reminder message..."
-              style={{ width: "100%", padding: "10px 14px", borderRadius: 8, border: "1px solid #e5e7eb", fontSize: 14 }} />
-          </div>
-          <button type="submit" disabled={sending}
-            style={{ padding: "10px 18px", background: "#f59e0b", color: "#fff", border: "none", borderRadius: 8, cursor: "pointer", fontWeight: 600, whiteSpace: "nowrap" }}>
-            {sending ? "Sending..." : "📩 Send Reminder"}
-          </button>
-        </form>
-      </section>
+      {/* Summary cards */}
+      <div className="admin-metrics" style={{ marginBottom: 24 }}>
+        <div className="admin-card admin-card--indigo">
+          <h3>Total Collected</h3>
+          <div className="admin-metric-value">₹{totalPaid.toLocaleString("en-IN")}</div>
+          <div className="admin-pill" style={{ background: "#dcfce7", color: "#166534" }}>Approved</div>
+        </div>
+        <div className="admin-card">
+          <h3>Pending Amount</h3>
+          <div className="admin-metric-value">₹{totalPending.toLocaleString("en-IN")}</div>
+          <div className="admin-pill" style={{ background: "#fef9c3", color: "#854d0e" }}>{pendingCount} awaiting</div>
+        </div>
+        <div className="admin-card admin-card--teal">
+          <h3>Total Transactions</h3>
+          <div className="admin-metric-value">{payments.length}</div>
+        </div>
+      </div>
 
       {/* Filter tabs */}
       <div style={{ display: "flex", gap: 8, marginBottom: 18 }}>
-        {["PENDING", "APPROVED", "REJECTED", "ALL"].map(f => (
+        {["ALL", "PENDING", "APPROVED", "REJECTED"].map(f => (
           <button key={f} onClick={() => setFilter(f)}
             style={{ padding: "7px 16px", borderRadius: 8, border: "none", cursor: "pointer", fontWeight: 600, fontSize: 13,
               background: filter === f ? "#6366f1" : "#f3f4f6", color: filter === f ? "#fff" : "#374151" }}>
-            {f} {f === "PENDING" && pendingCount > 0 ? `(${pendingCount})` : ""}
+            {f}{f === "PENDING" && pendingCount > 0 ? ` (${pendingCount})` : ""}
           </button>
         ))}
       </div>
 
-      {loading && <p style={{ color: "#6b7280" }}>Loading payments...</p>}
-      {error && <p style={{ color: "#ef4444" }}>{error}</p>}
+      {loading && <p style={{ color: "#6b7280" }}>Loading payments…</p>}
+      {error   && <p style={{ color: "#ef4444" }}>{error}</p>}
 
-      <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+      <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
         {filtered.map(p => {
           const student = p.invoice?.enrollment?.student;
-          const course = p.invoice?.enrollment?.batch?.course;
-          const batch = p.invoice?.enrollment?.batch;
-          const sc = STATUS_STYLE[p.approvalStatus] || STATUS_STYLE.PENDING;
+          const course  = p.invoice?.enrollment?.batch?.course;
+          const batch   = p.invoice?.enrollment?.batch;
+          const sc      = STATUS_STYLE[p.approvalStatus] || STATUS_STYLE.PENDING;
+
           return (
-            <div key={p._id} style={{ background: "#fff", border: "1px solid #e5e7eb", borderRadius: 12, padding: "18px 22px" }}>
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
-                <div>
-                  <div style={{ fontWeight: 700, fontSize: 20, color: "#111827" }}>₹{p.amount?.toLocaleString()}</div>
-                  <div style={{ color: "#374151", fontSize: 14, marginTop: 2 }}>
-                    <strong>{student?.name || "Student"}</strong> · {student?.email}
+            <div key={p._id} style={{ background: "#fff", border: "1px solid #e5e7eb", borderRadius: 12, padding: "16px 20px" }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 12 }}>
+                {/* Left info */}
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ fontWeight: 700, fontSize: 18 }}>₹{p.amount?.toLocaleString("en-IN")}</div>
+                  <div style={{ fontSize: 13, color: "#374151", marginTop: 2 }}>
+                    <strong>{student?.name || "Student"}</strong>
+                    {student?.email && <span style={{ color: "#6b7280" }}> · {student.email}</span>}
                   </div>
                   {course && (
-                    <div style={{ color: "#6366f1", fontSize: 13, marginTop: 3 }}>
-                      📚 {course.title} {batch ? `→ ${batch.name}` : ""}
+                    <div style={{ fontSize: 12, color: "#6366f1", marginTop: 3 }}>
+                      📚 {course.title}{batch ? ` → ${batch.name}` : ""}
                     </div>
                   )}
-                  <div style={{ color: "#9ca3af", fontSize: 12, marginTop: 3 }}>
-                    {p.paymentMethod} {p.transactionId ? `· TXN: ${p.transactionId}` : ""} · {new Date(p.paidAt || p.createdAt).toLocaleDateString()}
+                  <div style={{ fontSize: 12, color: "#9ca3af", marginTop: 3 }}>
+                    {p.paymentMethod}{p.transactionId ? ` · ${p.transactionId}` : ""} · {new Date(p.paidAt || p.createdAt).toLocaleDateString("en-IN")}
                   </div>
                 </div>
-                <div style={{ display: "flex", flexDirection: "column", gap: 8, alignItems: "flex-end" }}>
-                  <span style={{ padding: "4px 14px", borderRadius: 99, fontSize: 12, fontWeight: 700, background: sc.bg, color: sc.text }}>
+
+                {/* Right: status + invoice */}
+                <div style={{ display: "flex", flexDirection: "column", gap: 8, alignItems: "flex-end", flexShrink: 0 }}>
+                  <span style={{ padding: "3px 12px", borderRadius: 99, fontSize: 12, fontWeight: 700, background: sc.bg, color: sc.text }}>
                     {p.approvalStatus}
                   </span>
-                  {p.approvalStatus === "PENDING" && (
-                    <div style={{ display: "flex", gap: 8 }}>
-                      <button onClick={() => handleApproval(p._id, "APPROVED")} disabled={updating === p._id}
-                        style={{ padding: "6px 16px", borderRadius: 8, background: "#dcfce7", color: "#166534", border: "1px solid #bbf7d0", cursor: "pointer", fontSize: 13, fontWeight: 700 }}>
-                        ✓ Approve
-                      </button>
-                      <button onClick={() => handleApproval(p._id, "REJECTED")} disabled={updating === p._id}
-                        style={{ padding: "6px 16px", borderRadius: 8, background: "#fee2e2", color: "#dc2626", border: "1px solid #fecaca", cursor: "pointer", fontSize: 13, fontWeight: 700 }}>
-                        ✕ Reject
-                      </button>
-                    </div>
-                  )}
+                  {/* Download Invoice */}
+                  <button
+                    onClick={() => generateInvoice(p)}
+                    style={{ padding: "4px 10px", borderRadius: 6, background: "#f0f4ff", color: "#6366f1", border: "1px solid #c7d2fe", cursor: "pointer", fontSize: 12, fontWeight: 600 }}>
+                    📄 Invoice
+                  </button>
                 </div>
               </div>
             </div>
           );
         })}
+
         {!loading && !filtered.length && (
-          <div style={{ textAlign: "center", padding: "40px 20px", color: "#6b7280" }}>
+          <div style={{ textAlign: "center", padding: "48px 20px", color: "#9ca3af" }}>
             <div style={{ fontSize: 40, marginBottom: 10 }}>
               {filter === "PENDING" ? "✅" : filter === "APPROVED" ? "💚" : filter === "REJECTED" ? "❌" : "💳"}
             </div>
-            <p>{filter === "PENDING" ? "No pending payments. All caught up!" : `No ${filter.toLowerCase()} payments.`}</p>
+            <p style={{ margin: 0 }}>
+              {filter === "PENDING" ? "No pending payments." : `No ${filter.toLowerCase()} payments.`}
+            </p>
           </div>
         )}
       </div>

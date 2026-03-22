@@ -1,74 +1,46 @@
-import { getAdminDashboardStats } from "./reports.service.js";
-import { getTrainerDashboardStats } from "./reports.service.js";
-import { getCounselorDashboardStats } from "./reports.service.js";
-import { getStudentDashboardStats } from "./reports.service.js";
+import {
+  getAdminDashboardStats,
+  getTrainerDashboardStats,
+  getCounselorDashboardStats,
+  getStudentDashboardStats,
+} from "./reports.service.js";
 
-// admin dashboard
+// Admin dashboard
 export const getAdminDashboardHandler = async (req, res) => {
   try {
     const stats = await getAdminDashboardStats();
-
-    res.status(200).json({
-      success: true,
-      data: stats,
-    });
+    res.status(200).json({ success: true, data: stats });
   } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: error.message,
-    });
+    res.status(500).json({ success: false, message: error.message });
   }
 };
 
-// trainer dashboard
+// Trainer dashboard
 export const getTrainerDashboardHandler = async (req, res) => {
   try {
     const stats = await getTrainerDashboardStats(req.user._id);
-
-    res.status(200).json({
-      success: true,
-      data: stats,
-    });
+    res.status(200).json({ success: true, data: stats });
   } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: error.message,
-    });
+    res.status(500).json({ success: false, message: error.message });
   }
 };
 
-// counselor dashboard
+// Counselor dashboard — pass counselorId so only their data is returned
 export const getCounselorDashboardHandler = async (req, res) => {
   try {
-    const stats = await getCounselorDashboardStats();
-
-    res.status(200).json({
-      success: true,
-      data: stats,
-    });
+    const stats = await getCounselorDashboardStats(req.user._id);
+    res.status(200).json({ success: true, data: stats });
   } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: error.message,
-    });
+    res.status(500).json({ success: false, message: error.message });
   }
 };
 
-// student dashboard
+// Student dashboard
 export const getStudentDashboardHandler = async (req, res) => {
   try {
     const stats = await getStudentDashboardStats(req.user._id);
-
-    res.status(200).json({
-      success: true,
-      data: stats,
-    });
+    res.status(200).json({ success: true, data: stats });
   } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: error.message,
-    });
+    res.status(500).json({ success: false, message: error.message });
   }
 };
-
-

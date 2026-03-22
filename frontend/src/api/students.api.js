@@ -2,6 +2,7 @@ import API from "./axiosInstance";
 
 // Admin
 export const getAllStudents = () => API.get("/students").then(r => r.data);
+export const getStudentsByCounselor = () => API.get("/students/by-counselor").then(r => r.data);
 export const getStudentById = (id) => API.get(`/students/${id}`).then(r => r.data);
 export const updateStudent = (id, data) => API.put(`/students/${id}`, data).then(r => r.data);
 export const deleteStudent = (id) => API.delete(`/students/${id}`).then(r => r.data);

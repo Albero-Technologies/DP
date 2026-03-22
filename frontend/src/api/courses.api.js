@@ -24,3 +24,15 @@ export const deleteCourse = async (id) => {
   const res = await API.delete(`/courses/${id}`);
   return res.data;
 };
+
+// ── Multiple videos ──────────────────────────────────────────
+export const addCourseVideo = async (courseId, videoData) => {
+  // videoData = { title, url, order }
+  const res = await API.post(`/admin/courses/${courseId}/videos`, videoData);
+  return res.data;
+};
+
+export const deleteCourseVideo = async (courseId, videoId) => {
+  const res = await API.delete(`/admin/courses/${courseId}/videos/${videoId}`);
+  return res.data;
+};

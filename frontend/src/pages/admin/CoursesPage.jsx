@@ -1,34 +1,225 @@
 import { useState } from "react";
 import useFetch from "../../hooks/useFetch";
-import { getAllCourses, createCourse, updateCourse, deleteCourse } from "../../api/courses.api";
+import {
+  getAllCourses, createCourse, updateCourse, deleteCourse,
+  addCourseVideo, deleteCourseVideo,
+} from "../../api/courses.api";
 
 const empty = { title: "", description: "", durationInMonths: "", fees: "", youtubeLink: "" };
+const emptyVideo = { title: "", url: "" };
 
-// Robust YouTube ID extractor — handles youtu.be, watch?v=, embed/, ?si= tracking params
 function getYouTubeId(url) {
   if (!url) return null;
   try {
-    // Handle youtu.be/ID?si=...
     const shortMatch = url.match(/youtu\.be\/([^?&\n#]+)/);
     if (shortMatch) return shortMatch[1];
-    // Handle youtube.com/watch?v=ID&...
     const watchMatch = url.match(/[?&]v=([^?&\n#]+)/);
     if (watchMatch) return watchMatch[1];
-    // Handle youtube.com/embed/ID
     const embedMatch = url.match(/embed\/([^?&\n#]+)/);
     if (embedMatch) return embedMatch[1];
   } catch {}
   return null;
 }
 
+// ── Video Manager Modal ──────────────────────────────────────
+function VideoManager({ course, onClose, onRefetch }) {
+  const [videoForm, setVideoForm] = useState(emptyVideo);
+  const [saving,    setSaving]    = useState(false);
+  const [deleting,  setDeleting]  = useState(null);
+  const [error,     setError]     = useState("");
+  const [activeVideo, setActiveVideo] = useState(null);
+
+  const handleAdd = async (e) => {
+    e.preventDefault();
+    if (!getYouTubeId(videoForm.url)) {
+      setError("Please enter a valid YouTube URL");
+      return;
+    }
+    setSaving(true); setError("");
+    try {
+      await addCourseVideo(course._id, {
+        title: videoForm.title,
+        url:   videoForm.url,
+        order: (course.videos?.length || 0) + 1,
+      });
+      setVideoForm(emptyVideo);
+      onRefetch();
+    } catch (err) {
+      setError(err?.response?.data?.message || "Failed to add video");
+    } finally { setSaving(false); }
+  };
+
+  const handleDelete = async (videoId) => {
+    if (!window.confirm("Delete this video?")) return;
+    setDeleting(videoId);
+    try {
+      await deleteCourseVideo(course._id, videoId);
+      onRefetch();
+    } catch (err) {
+      alert(err?.response?.data?.message || "Delete failed");
+    } finally { setDeleting(null); }
+  };
+
+  const previewId = getYouTubeId(videoForm.url);
+
+  return (
+    <div
+      onClick={onClose}
+      style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.6)", zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center", padding: "1rem" }}
+    >
+      <div
+        onClick={e => e.stopPropagation()}
+        style={{ background: "#fff", borderRadius: 16, width: "min(96vw,700px)", maxHeight: "90vh", overflowY: "auto", boxShadow: "0 8px 40px rgba(0,0,0,0.3)" }}
+      >
+        {/* Header */}
+        <div style={{ padding: "18px 22px", borderBottom: "1px solid #e5e7eb", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+          <div>
+            <h2 style={{ margin: 0, fontSize: 17, fontWeight: 700 }}>Manage Videos</h2>
+            <p style={{ margin: "2px 0 0", fontSize: 13, color: "#6b7280" }}>{course.title}</p>
+          </div>
+          <button onClick={onClose} style={{ background: "none", border: "none", fontSize: 20, cursor: "pointer", color: "#6b7280" }}>✕</button>
+        </div>
+
+        <div style={{ padding: "20px 22px" }}>
+
+          {/* Add video form */}
+          <div style={{ background: "#f8fafc", border: "1px solid #e5e7eb", borderRadius: 10, padding: "16px", marginBottom: "20px" }}>
+            <h3 style={{ margin: "0 0 12px", fontSize: 14, fontWeight: 700, color: "#374151" }}>+ Add New Video</h3>
+            {error && <p style={{ color: "#ef4444", fontSize: 12, margin: "0 0 8px" }}>{error}</p>}
+            <form onSubmit={handleAdd} style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+              <input
+                placeholder="Video Title (e.g. Module 1: Introduction)"
+                value={videoForm.title}
+                onChange={e => setVideoForm(p => ({ ...p, title: e.target.value }))}
+                required
+                style={inputStyle}
+              />
+              <input
+                placeholder="YouTube URL (e.g. https://youtu.be/abc123)"
+                value={videoForm.url}
+                onChange={e => setVideoForm(p => ({ ...p, url: e.target.value }))}
+                required
+                style={{ ...inputStyle, borderColor: videoForm.url ? (previewId ? "#6366f1" : "#ef4444") : "#e5e7eb" }}
+              />
+              {videoForm.url && !previewId && (
+                <p style={{ color: "#ef4444", fontSize: 12, margin: 0 }}>⚠ Enter a valid YouTube URL</p>
+              )}
+              {/* Live preview */}
+              {previewId && (
+                <div style={{ borderRadius: 8, overflow: "hidden", aspectRatio: "16/9", maxWidth: 320, border: "2px solid #6366f1" }}>
+                  <iframe width="100%" height="100%"
+                    src={`https://www.youtube.com/embed/${previewId}`}
+                    title="Preview" frameBorder="0" allowFullScreen style={{ display: "block" }} />
+                </div>
+              )}
+              <button
+                type="submit"
+                disabled={saving || (videoForm.url && !previewId)}
+                style={{ padding: "9px 20px", background: saving ? "#a5b4fc" : "#6366f1", color: "#fff", border: "none", borderRadius: 8, cursor: "pointer", fontWeight: 600, fontSize: 13, alignSelf: "flex-start" }}
+              >
+                {saving ? "Adding…" : "Add Video"}
+              </button>
+            </form>
+          </div>
+
+          {/* All videos list */}
+          <h3 style={{ margin: "0 0 12px", fontSize: 14, fontWeight: 700, color: "#374151" }}>
+            All Videos ({(course.videos?.length || 0) + (course.youtubeLink ? 1 : 0)})
+          </h3>
+
+          {/* Intro video - always show */}
+          {course.youtubeLink && (
+            <div style={{ ...videoRowStyle, background: "#f0f9ff", borderRadius: 8, padding: "10px", marginBottom: 4 }}>
+              <div style={thumbStyle(getYouTubeId(course.youtubeLink))} onClick={() => setActiveVideo(getYouTubeId(course.youtubeLink))}>
+                {getYouTubeId(course.youtubeLink) && (
+                  <img src={`https://img.youtube.com/vi/${getYouTubeId(course.youtubeLink)}/default.jpg`} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                )}
+                <div style={playOverlay}>▶</div>
+              </div>
+              <div style={{ flex: 1 }}>
+                <p style={{ fontWeight: 700, fontSize: 13, margin: "0 0 2px", color: "#0369a1" }}>🎬 Intro / Promo Video</p>
+                <p style={{ fontSize: 11, color: "#9ca3af", margin: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{course.youtubeLink}</p>
+                <p style={{ fontSize: 10, color: "#0369a1", margin: "2px 0 0" }}>Set during course creation — edit via Edit button</p>
+              </div>
+            </div>
+          )}
+
+          {/* No videos at all */}
+          {!course.youtubeLink && (!course.videos || course.videos.length === 0) && (
+            <p style={{ color: "#9ca3af", fontSize: 13, textAlign: "center", padding: "20px 0" }}>No videos yet. Add your first video above.</p>
+          )}
+
+          {[...(course.videos || [])].sort((a, b) => a.order - b.order).map((video, idx) => {
+            const vid = getYouTubeId(video.url);
+            return (
+              <div key={video._id} style={videoRowStyle}>
+                <div style={thumbStyle(vid)} onClick={() => vid && setActiveVideo(vid)}>
+                  {vid && <img src={`https://img.youtube.com/vi/${vid}/default.jpg`} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />}
+                  {vid && <div style={playOverlay}>▶</div>}
+                </div>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <p style={{ fontWeight: 600, fontSize: 13, margin: "0 0 2px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                    {idx + 1}. {video.title}
+                  </p>
+                  <p style={{ fontSize: 11, color: "#9ca3af", margin: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{video.url}</p>
+                </div>
+                <div style={{ display: "flex", gap: 6, flexShrink: 0 }}>
+                  {vid && (
+                    <button
+                      onClick={() => setActiveVideo(vid)}
+                      style={{ padding: "4px 10px", border: "none", background: "#6366f1", color: "#fff", borderRadius: 6, cursor: "pointer", fontSize: 12, fontWeight: 600 }}
+                    >
+                      ▶ Play
+                    </button>
+                  )}
+                  <button
+                    onClick={() => handleDelete(video._id)}
+                    disabled={deleting === video._id}
+                    style={{ padding: "4px 10px", border: "1px solid #ef4444", color: "#ef4444", background: "#fff", borderRadius: 6, cursor: "pointer", fontSize: 12, flexShrink: 0 }}
+                  >
+                    {deleting === video._id ? "…" : "Delete"}
+                  </button>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Inline video player */}
+      {activeVideo && (
+        <div
+          onClick={() => setActiveVideo(null)}
+          style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.92)", zIndex: 1100, display: "flex", alignItems: "center", justifyContent: "center" }}
+        >
+          <div onClick={e => e.stopPropagation()} style={{ width: "min(90vw,900px)", aspectRatio: "16/9", borderRadius: 12, overflow: "hidden", position: "relative" }}>
+            <button onClick={() => setActiveVideo(null)}
+              style={{ position: "absolute", top: 10, right: 14, color: "#fff", background: "rgba(0,0,0,0.5)", border: "none", borderRadius: "50%", width: 34, height: 34, fontSize: 18, cursor: "pointer", zIndex: 10 }}>✕</button>
+            <iframe width="100%" height="100%"
+              src={`https://www.youtube.com/embed/${activeVideo}?autoplay=1`}
+              title="Video" frameBorder="0" allowFullScreen allow="autoplay" style={{ display: "block" }} />
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+const inputStyle = { padding: "9px 12px", borderRadius: 8, border: "1px solid #e5e7eb", fontSize: 13, width: "100%", boxSizing: "border-box" };
+const videoRowStyle = { display: "flex", alignItems: "center", gap: 12, padding: "10px 0", borderBottom: "1px solid #f3f4f6" };
+const thumbStyle = (vid) => ({ width: 72, height: 42, borderRadius: 6, background: vid ? "#000" : "#f3f4f6", flexShrink: 0, overflow: "hidden", position: "relative", cursor: vid ? "pointer" : "default" });
+const playOverlay = { position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", background: "rgba(0,0,0,0.3)", color: "#fff", fontSize: 14 };
+
+// ── Main Page ────────────────────────────────────────────────
 export default function CoursesPage() {
   const { data: courses, loading, error, refetch } = useFetch(getAllCourses);
-  const [form, setForm] = useState(empty);
-  const [editing, setEditing] = useState(null);
-  const [showForm, setShowForm] = useState(false);
-  const [saving, setSaving] = useState(false);
-  const [formError, setFormError] = useState("");
+  const [form,        setForm]        = useState(empty);
+  const [editing,     setEditing]     = useState(null);
+  const [showForm,    setShowForm]    = useState(false);
+  const [saving,      setSaving]      = useState(false);
+  const [formError,   setFormError]   = useState("");
   const [activeVideo, setActiveVideo] = useState(null);
+  const [videoMgrCourse, setVideoMgrCourse] = useState(null); // which course's video manager is open
 
   const handleChange = (e) => setForm(p => ({ ...p, [e.target.name]: e.target.value }));
 
@@ -47,14 +238,13 @@ export default function CoursesPage() {
 
   const handleEdit = (course) => {
     setForm({
-      title: course.title,
-      description: course.description || "",
+      title:            course.title,
+      description:      course.description || "",
       durationInMonths: course.durationInMonths,
-      fees: course.fees,
-      youtubeLink: course.youtubeLink || "",
+      fees:             course.fees,
+      youtubeLink:      course.youtubeLink || "",
     });
     setEditing(course._id); setShowForm(true);
-    // Scroll to form
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
@@ -68,10 +258,9 @@ export default function CoursesPage() {
 
   return (
     <div>
-      {/* ── Video Modal ── */}
+      {/* ── Video watch modal ── */}
       {activeVideo && (
-        <div
-          onClick={() => setActiveVideo(null)}
+        <div onClick={() => setActiveVideo(null)}
           style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.88)", zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center" }}>
           <div onClick={e => e.stopPropagation()}
             style={{ width: "min(90vw,900px)", aspectRatio: "16/9", borderRadius: 14, overflow: "hidden", position: "relative", boxShadow: "0 8px 40px rgba(0,0,0,0.6)" }}>
@@ -79,21 +268,32 @@ export default function CoursesPage() {
               style={{ position: "absolute", top: 10, right: 14, color: "#fff", background: "rgba(0,0,0,0.5)", border: "none", borderRadius: "50%", width: 34, height: 34, fontSize: 18, cursor: "pointer", zIndex: 10, lineHeight: "34px" }}>✕</button>
             <iframe width="100%" height="100%"
               src={`https://www.youtube.com/embed/${activeVideo}?autoplay=1`}
-              title="Course Video" frameBorder="0" allowFullScreen allow="autoplay"
-              style={{ display: "block" }} />
+              title="Course Video" frameBorder="0" allowFullScreen allow="autoplay" style={{ display: "block" }} />
           </div>
         </div>
       )}
 
+      {/* ── Video Manager Modal ── */}
+      {videoMgrCourse && (
+        <VideoManager
+          course={courses?.find(c => c._id === videoMgrCourse._id) || videoMgrCourse}
+          onClose={() => setVideoMgrCourse(null)}
+          onRefetch={refetch}
+        />
+      )}
+
+      {/* ── Page header ── */}
       <div className="admin-page-header">
         <div><h1>Courses</h1><p>Manage all training programs</p></div>
-        <button onClick={() => { setShowForm(!showForm); setEditing(null); setForm(empty); }}
-          style={{ padding: "8px 20px", background: "#6366f1", color: "#fff", border: "none", borderRadius: 8, cursor: "pointer", fontWeight: 600 }}>
+        <button
+          onClick={() => { setShowForm(!showForm); setEditing(null); setForm(empty); }}
+          style={{ padding: "8px 20px", background: "#6366f1", color: "#fff", border: "none", borderRadius: 8, cursor: "pointer", fontWeight: 600 }}
+        >
           {showForm ? "Cancel" : "+ Add Course"}
         </button>
       </div>
 
-      {/* ── Form ── */}
+      {/* ── Add / Edit form ── */}
       {showForm && (
         <section className="admin-section" style={{ marginBottom: 28 }}>
           <h2>{editing ? "Edit Course" : "New Course"}</h2>
@@ -109,26 +309,20 @@ export default function CoursesPage() {
               <input name="fees" type="number" placeholder="Fees (₹)" value={form.fees} onChange={handleChange} required
                 style={{ padding: "10px 14px", borderRadius: 8, border: "1px solid #e5e7eb", fontSize: 14 }} />
             </div>
-
-            {/* YouTube — required */}
             <div>
-              <input name="youtubeLink" placeholder="YouTube Link (required) — e.g. https://youtu.be/abc123"
-                value={form.youtubeLink} onChange={handleChange} required
+              <input name="youtubeLink" placeholder="Intro/Promo YouTube Link (optional)"
+                value={form.youtubeLink} onChange={handleChange}
                 style={{ width: "100%", padding: "10px 14px", borderRadius: 8, border: `1.5px solid ${previewId ? "#6366f1" : form.youtubeLink ? "#ef4444" : "#e5e7eb"}`, fontSize: 14, boxSizing: "border-box" }} />
               {form.youtubeLink && !previewId && (
-                <p style={{ color: "#ef4444", fontSize: 12, margin: "4px 0 0" }}>⚠ Paste a valid YouTube URL (youtu.be/... or youtube.com/watch?v=...)</p>
+                <p style={{ color: "#ef4444", fontSize: 12, margin: "4px 0 0" }}>⚠ Paste a valid YouTube URL</p>
               )}
             </div>
-
-            {/* Live preview */}
             {previewId && (
-              <div style={{ borderRadius: 10, overflow: "hidden", aspectRatio: "16/9", maxWidth: 440, border: "2px solid #6366f1", boxShadow: "0 2px 12px rgba(99,102,241,0.2)" }}>
-                <iframe width="100%" height="100%"
-                  src={`https://www.youtube.com/embed/${previewId}`}
+              <div style={{ borderRadius: 10, overflow: "hidden", aspectRatio: "16/9", maxWidth: 440, border: "2px solid #6366f1" }}>
+                <iframe width="100%" height="100%" src={`https://www.youtube.com/embed/${previewId}`}
                   title="Preview" frameBorder="0" allowFullScreen style={{ display: "block" }} />
               </div>
             )}
-
             <button type="submit" disabled={saving || (form.youtubeLink && !previewId)}
               style={{ padding: "10px 24px", background: saving ? "#a5b4fc" : "#6366f1", color: "#fff", border: "none", borderRadius: 8, cursor: saving ? "not-allowed" : "pointer", width: "fit-content", fontWeight: 600 }}>
               {saving ? "Saving..." : editing ? "Update Course" : "Create Course"}
@@ -139,8 +333,8 @@ export default function CoursesPage() {
 
       {loading && (
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill,minmax(300px,1fr))", gap: 20 }}>
-          {[1,2,3].map(i => (
-            <div key={i} style={{ background: "#f3f4f6", borderRadius: 12, height: 280, animation: "pulse 1.5s infinite" }} />
+          {[1, 2, 3].map(i => (
+            <div key={i} style={{ background: "#f3f4f6", borderRadius: 12, height: 280 }} />
           ))}
         </div>
       )}
@@ -149,27 +343,34 @@ export default function CoursesPage() {
       {/* ── Course Cards ── */}
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill,minmax(300px,1fr))", gap: 20, marginTop: 8 }}>
         {courses?.map(course => {
-          const vid = getYouTubeId(course.youtubeLink);
-          return (
-            <div key={course._id} style={{ background: "#fff", borderRadius: 14, border: "1px solid #e5e7eb", overflow: "hidden", boxShadow: "0 2px 8px rgba(0,0,0,0.07)", transition: "box-shadow 0.2s" }}
-              onMouseEnter={e => e.currentTarget.style.boxShadow = "0 4px 20px rgba(99,102,241,0.15)"}
-              onMouseLeave={e => e.currentTarget.style.boxShadow = "0 2px 8px rgba(0,0,0,0.07)"}>
+          const firstVid = course.videos?.length > 0
+            ? getYouTubeId(course.videos[0].url)
+            : getYouTubeId(course.youtubeLink);
+          const videoCount = (course.videos?.length || 0) + (course.youtubeLink ? 1 : 0);
 
-              {/* Thumbnail — shows YouTube thumbnail if video exists */}
-              <div style={{ position: "relative", aspectRatio: "16/9", background: "linear-gradient(135deg,#6366f1,#8b5cf6)", cursor: vid ? "pointer" : "default", overflow: "hidden" }}
-                onClick={() => vid && setActiveVideo(vid)}>
-                {vid ? (
+          return (
+            <div key={course._id}
+              style={{ background: "#fff", borderRadius: 14, border: "1px solid #e5e7eb", overflow: "hidden", boxShadow: "0 2px 8px rgba(0,0,0,0.07)", transition: "box-shadow 0.2s" }}
+              onMouseEnter={e => e.currentTarget.style.boxShadow = "0 4px 20px rgba(99,102,241,0.15)"}
+              onMouseLeave={e => e.currentTarget.style.boxShadow = "0 2px 8px rgba(0,0,0,0.07)"}
+            >
+              {/* Thumbnail */}
+              <div style={{ position: "relative", aspectRatio: "16/9", background: "linear-gradient(135deg,#6366f1,#8b5cf6)", cursor: firstVid ? "pointer" : "default", overflow: "hidden" }}
+                onClick={() => firstVid && setActiveVideo(firstVid)}>
+                {firstVid ? (
                   <>
-                    <img
-                      src={`https://img.youtube.com/vi/${vid}/hqdefault.jpg`}
-                      alt={course.title}
+                    <img src={`https://img.youtube.com/vi/${firstVid}/hqdefault.jpg`} alt={course.title}
                       style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
-                      onError={e => { e.target.style.display = "none"; }}
-                    />
-                    {/* Play button overlay */}
+                      onError={e => { e.target.style.display = "none"; }} />
                     <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", background: "rgba(0,0,0,0.15)" }}>
                       <div style={{ width: 52, height: 52, background: "rgba(255,255,255,0.92)", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 22, boxShadow: "0 2px 12px rgba(0,0,0,0.3)" }}>▶</div>
                     </div>
+                    {/* Video count badge */}
+                    {videoCount > 0 && (
+                      <div style={{ position: "absolute", top: 8, left: 8, background: "rgba(0,0,0,0.7)", color: "#fff", borderRadius: 6, padding: "2px 8px", fontSize: 11, fontWeight: 700 }}>
+                        {videoCount} {videoCount === 1 ? "video" : "videos"}
+                      </div>
+                    )}
                   </>
                 ) : (
                   <div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: "100%", flexDirection: "column", gap: 8 }}>
@@ -192,12 +393,17 @@ export default function CoursesPage() {
                   <span>💰 ₹{course.fees?.toLocaleString()}</span>
                 </div>
                 <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-                  {vid && (
-                    <button onClick={() => setActiveVideo(vid)}
+                  {firstVid && (
+                    <button onClick={() => setActiveVideo(firstVid)}
                       style={{ padding: "5px 14px", borderRadius: 7, background: "#6366f1", color: "#fff", border: "none", cursor: "pointer", fontSize: 12, fontWeight: 600 }}>
                       ▶ Watch
                     </button>
                   )}
+                  {/* Manage Videos button */}
+                  <button onClick={() => setVideoMgrCourse(course)}
+                    style={{ padding: "5px 14px", borderRadius: 7, background: videoCount > 0 ? "#f0fdf4" : "#fefce8", color: videoCount > 0 ? "#16a34a" : "#854d0e", border: `1px solid ${videoCount > 0 ? "#86efac" : "#fcd34d"}`, cursor: "pointer", fontSize: 12, fontWeight: 600 }}>
+                    🎬 Videos ({videoCount})
+                  </button>
                   <button onClick={() => handleEdit(course)}
                     style={{ padding: "5px 14px", borderRadius: 7, border: "1px solid #6366f1", color: "#6366f1", background: "#fff", cursor: "pointer", fontSize: 12 }}>
                     Edit

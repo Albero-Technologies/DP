@@ -6,71 +6,43 @@ import {
   updateEnrollmentHandler,
   deleteEnrollmentHandler,
 } from "./enrollment.controller.js";
-
 import { protect } from "../../middleware/auth.middleware.js";
 import { authorizeRoles } from "../../middleware/role.middleware.js";
 import { ROLES } from "../../config/constants.js";
+import Enrollment from "./enrollment.model.js";
 
 const router = express.Router();
 
-/**
- * @route   POST /api/enrollments
- * @desc    Enroll student into batch
- * @access  Private (ADMIN, COUNSELOR)
- */
-router.post(
-  "/",
-  protect,
-  authorizeRoles(ROLES.ADMIN, ROLES.COUNSELOR),
-  enrollStudentHandler
-);
+// POST /api/enrollments — enroll student
+router.post("/", protect, authorizeRoles(ROLES.ADMIN, ROLES.COUNSELOR), enrollStudentHandler);
 
-/**
- * @route   GET /api/enrollments
- * @desc    Get all enrollments
- * @access  Private (ADMIN only)
- */
-router.get(
-  "/",
-  protect,
-  authorizeRoles(ROLES.ADMIN),
-  getAllEnrollmentsHandler
-);
+// GET /api/enrollments — all enrollments (admin) OR by studentId query param (counselor/admin)
+router.get("/", protect, authorizeRoles(ROLES.ADMIN, ROLES.COUNSELOR), async (req, res) => {
+  try {
+    const { studentId } = req.query;
+    const filter = studentId ? { student: studentId } : {};
 
-/**
- * @route   GET /api/enrollments/my
- * @desc    Get logged-in student's enrollments
- * @access  Private (STUDENT)
- */
-router.get(
-  "/my",
-  protect,
-  authorizeRoles(ROLES.STUDENT),
-  getMyEnrollmentsHandler
-);
+    const enrollments = await Enrollment.find(filter)
+      .populate({ path: "batch", populate: [
+        { path: "course", select: "title fees" },
+        { path: "trainer", select: "name email" },
+      ]})
+      .populate("student", "name email studentId")
+      .sort("-createdAt");
 
-/**
- * @route   PUT /api/enrollments/:id
- * @desc    Update enrollment (change student or batch)
- * @access  Private (ADMIN, COUNSELOR)
- */
-router.put(
-  "/:id",
-  protect,
-  authorizeRoles(ROLES.ADMIN, ROLES.COUNSELOR),
-  updateEnrollmentHandler
-);
+    res.json({ success: true, data: enrollments });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
 
-/**
- * @route   DELETE /api/enrollments/:id
- * @desc    Remove enrollment (unenroll student)
- * @access  Private (ADMIN, COUNSELOR)
- */
-router.delete(
-  "/:id",
-  protect,
-  authorizeRoles(ROLES.ADMIN, ROLES.COUNSELOR),
-  deleteEnrollmentHandler
-);
+// GET /api/enrollments/my — student's own enrollments
+router.get("/my", protect, authorizeRoles(ROLES.STUDENT), getMyEnrollmentsHandler);
+
+// PUT /api/enrollments/:id
+router.put("/:id", protect, authorizeRoles(ROLES.ADMIN, ROLES.COUNSELOR), updateEnrollmentHandler);
+
+// DELETE /api/enrollments/:id
+router.delete("/:id", protect, authorizeRoles(ROLES.ADMIN, ROLES.COUNSELOR), deleteEnrollmentHandler);
 
 export default router;

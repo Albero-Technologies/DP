@@ -4,30 +4,18 @@ import {
   markAsReadHandler,
   markAllAsReadHandler,
 } from "./notification.controller.js";
-
 import { protect } from "../../middleware/auth.middleware.js";
 
 const router = express.Router();
 
-/**
- * @route   GET /api/notifications
- * @desc    Get logged-in user's notifications
- * @access  Private (All authenticated users)
- */
+// GET /api/notifications
 router.get("/", protect, getMyNotificationsHandler);
 
-/**
- * @route   PATCH /api/notifications/:id/read
- * @desc    Mark single notification as read
- * @access  Private (Owner only)
- */
-router.patch("/:id/read", protect, markAsReadHandler);
+// PATCH /api/notifications/read-all  ← MUST be before /:id/read
+router.patch("/read-all",      protect, markAllAsReadHandler);
+router.patch("/mark-all-read", protect, markAllAsReadHandler); // alias
 
-/**
- * @route   PATCH /api/notifications/read-all
- * @desc    Mark all notifications as read
- * @access  Private (Owner only)
- */
-router.patch("/read-all", protect, markAllAsReadHandler);
+// PATCH /api/notifications/:id/read
+router.patch("/:id/read", protect, markAsReadHandler);
 
 export default router;

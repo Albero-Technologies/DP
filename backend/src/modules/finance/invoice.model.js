@@ -3,41 +3,28 @@ import mongoose from "mongoose";
 const invoiceSchema = new mongoose.Schema(
   {
     enrollment: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Enrollment",
+      type:     mongoose.Schema.Types.ObjectId,
+      ref:      "Enrollment",
       required: true,
     },
-
-    totalAmount: {
-      type: Number,
-      required: true,
-    },
-
-    amountPaid: {
-      type: Number,
-      default: 0,
-    },
-
+    totalAmount: { type: Number, required: true },
+    amountPaid:  { type: Number, default: 0 },
     status: {
-      type: String,
-      enum: ["PAID", "PARTIAL", "DUE"],
+      type:    String,
+      enum:    ["PAID", "PARTIAL", "DUE", "UNPAID"],
       default: "DUE",
     },
+    dueDate:   { type: Date, required: true },
+    createdBy: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: false },
 
-    dueDate: {
-      type: Date,
-      required: true,
-    },
-
-    createdBy: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "User",
-      required: false,
+    // For DEMO invoices — no real enrollment needed
+    meta: {
+      studentId: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
+      type:      { type: String, enum: ["DEMO", "BATCH"] },
     },
   },
   { timestamps: true }
 );
 
 const Invoice = mongoose.model("Invoice", invoiceSchema);
-
 export default Invoice;

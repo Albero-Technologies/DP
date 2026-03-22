@@ -8,15 +8,8 @@ const notificationSchema = new mongoose.Schema(
       required: true,
     },
 
-    title: {
-      type: String,
-      required: true,
-    },
-
-    message: {
-      type: String,
-      required: true,
-    },
+    title:   { type: String, required: true },
+    message: { type: String, required: true },
 
     type: {
       type: String,
@@ -26,22 +19,21 @@ const notificationSchema = new mongoose.Schema(
         "PAYMENT",
         "BATCH",
         "GENERAL",
+        "SESSION",
+        "CONTENT",
+        "ACCESS",
+        "REMINDER",
       ],
       default: "GENERAL",
     },
 
-    isRead: {
-      type: Boolean,
-      default: false,
-    },
+    isRead: { type: Boolean, default: false },
 
-    relatedEntity: {
-      type: mongoose.Schema.Types.ObjectId,
-    },
+    relatedEntity: { type: mongoose.Schema.Types.ObjectId },
+    relatedModel:  { type: String },  // e.g. "Payment", "Enrollment"
   },
   { timestamps: true }
 );
 
 const Notification = mongoose.model("Notification", notificationSchema);
-
 export default Notification;

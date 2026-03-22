@@ -1,102 +1,272 @@
-import { useState } from "react";
-import useFetch from "../../hooks/useFetch";
-import { getStudentCourses } from "../../api/students.api";
+import { useState, useEffect } from "react";
+import API from "../../api/axiosInstance";
+import useAuth from "../../context/useAuth";
 
-function getYouTubeEmbedId(url) {
+function getYouTubeId(url) {
   if (!url) return null;
-  const match = url.match(/(?:youtube\.com\/(?:watch\?v=|playlist\?list=)|youtu\.be\/)([^&\n?#]+)/);
-  return match ? match[1] : null;
+  const s = url.match(/youtu\.be\/([^?&\n#]+)/);
+  if (s) return s[1];
+  const w = url.match(/[?&]v=([^?&\n#]+)/);
+  if (w) return w[1];
+  const e = url.match(/embed\/([^?&\n#]+)/);
+  return e ? e[1] : null;
 }
 
-export default function MyCoursesPage() {
-  const { data: enrollments, loading, error } = useFetch(getStudentCourses);
+// ── Video Modal ───────────────────────────────────────────────
+function VideoModal({ videoId, onClose }) {
+  return (
+    <div onClick={onClose} style={{ position:"fixed",inset:0,background:"rgba(0,0,0,0.92)",zIndex:2000,display:"flex",alignItems:"center",justifyContent:"center" }}>
+      <div onClick={e=>e.stopPropagation()} style={{ width:"min(92vw,900px)",aspectRatio:"16/9",borderRadius:14,overflow:"hidden",position:"relative",boxShadow:"0 8px 40px rgba(0,0,0,0.6)" }}>
+        <button onClick={onClose} style={{ position:"absolute",top:10,right:14,color:"#fff",background:"rgba(0,0,0,0.55)",border:"none",borderRadius:"50%",width:34,height:34,fontSize:18,cursor:"pointer",zIndex:10,lineHeight:"34px" }}>✕</button>
+        <iframe width="100%" height="100%" src={`https://www.youtube.com/embed/${videoId}?autoplay=1`}
+          title="Course Video" frameBorder="0" allowFullScreen allow="autoplay" style={{ display:"block" }} />
+      </div>
+    </div>
+  );
+}
+
+// ── Course Videos Modal ───────────────────────────────────────
+function CourseVideosModal({ enrollment, isLocked, onClose }) {
   const [activeVideo, setActiveVideo] = useState(null);
+  const course = enrollment.batch?.course;
+
+  const allVideos = [];
+  if (course?.youtubeLink) allVideos.push({ _id:"intro", title:"Intro / Promo Video", url:course.youtubeLink, isIntro:true });
+  if (course?.videos?.length) [...course.videos].sort((a,b)=>a.order-b.order).forEach(v=>allVideos.push(v));
+
+  return (
+    <div onClick={onClose} style={{ position:"fixed",inset:0,background:"rgba(0,0,0,0.6)",zIndex:1000,display:"flex",alignItems:"center",justifyContent:"center",padding:"1rem" }}>
+      <div onClick={e=>e.stopPropagation()} style={{ background:"#fff",borderRadius:16,width:"min(96vw,680px)",maxHeight:"88vh",overflowY:"auto",boxShadow:"0 8px 40px rgba(0,0,0,0.25)" }}>
+        {activeVideo && !isLocked && <VideoModal videoId={activeVideo} onClose={()=>setActiveVideo(null)} />}
+
+        {/* Header */}
+        <div style={{ padding:"18px 22px",borderBottom:"1px solid #e5e7eb",display:"flex",justifyContent:"space-between",alignItems:"center" }}>
+          <div>
+            <h2 style={{ margin:0,fontSize:17,fontWeight:700 }}>{course?.title}</h2>
+            <p style={{ margin:"3px 0 0",fontSize:12,color:"#6b7280" }}>
+              {enrollment.batch?.name} · {allVideos.length} video{allVideos.length!==1?"s":""}
+              {isLocked
+                ? <span style={{ marginLeft:8,color:"#f59e0b",fontWeight:700 }}>🔒 Locked</span>
+                : <span style={{ marginLeft:8,color:"#16a34a",fontWeight:700 }}>✅ Unlocked</span>}
+            </p>
+          </div>
+          <button onClick={onClose} style={{ background:"none",border:"none",fontSize:20,cursor:"pointer",color:"#6b7280" }}>✕</button>
+        </div>
+
+        <div style={{ padding:"20px 22px" }}>
+          {isLocked && (
+            <div style={{ background:"#fef9c3",border:"1px solid #fde68a",borderRadius:10,padding:"12px 16px",marginBottom:16,fontSize:13,color:"#92400e",fontWeight:600 }}>
+              🔒 Complete your initial payment to unlock course videos. Contact your counselor.
+            </div>
+          )}
+
+          {allVideos.length===0 && (
+            <p style={{ color:"#9ca3af",textAlign:"center",padding:"20px 0" }}>No videos uploaded yet.</p>
+          )}
+
+          {allVideos.map((video,idx) => {
+            const vid = getYouTubeId(video.url);
+            return (
+              <div key={video._id} style={{ display:"flex",alignItems:"center",gap:12,padding:"10px 0",borderBottom:idx<allVideos.length-1?"1px solid #f3f4f6":"none" }}>
+                {/* Thumbnail */}
+                <div onClick={()=>!isLocked&&vid&&setActiveVideo(vid)}
+                  style={{ width:80,height:48,borderRadius:6,background:video.isIntro?"#dbeafe":"#f3f4f6",flexShrink:0,overflow:"hidden",position:"relative",cursor:isLocked?"not-allowed":vid?"pointer":"default" }}>
+                  {vid && <img src={`https://img.youtube.com/vi/${vid}/default.jpg`} alt="" style={{ width:"100%",height:"100%",objectFit:"cover",filter:isLocked?"brightness(0.3) grayscale(1)":"none" }} />}
+                  {!isLocked&&vid && <div style={{ position:"absolute",inset:0,display:"flex",alignItems:"center",justifyContent:"center",background:"rgba(0,0,0,0.25)" }}><span style={{ color:"#fff",fontSize:16 }}>▶</span></div>}
+                  {isLocked && <div style={{ position:"absolute",inset:0,display:"flex",alignItems:"center",justifyContent:"center" }}><span style={{ fontSize:18 }}>🔒</span></div>}
+                </div>
+                {/* Title */}
+                <div style={{ flex:1,minWidth:0 }}>
+                  <p style={{ margin:0,fontWeight:600,fontSize:13,color:video.isIntro?"#0369a1":isLocked?"#9ca3af":"#111827",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap" }}>
+                    {video.isIntro?"🎬 ":`${idx}. `}{video.title}
+                  </p>
+                  {video.isIntro && <p style={{ margin:"2px 0 0",fontSize:10,color:"#0369a1" }}>Intro / Promo</p>}
+                </div>
+                {/* Play / Lock */}
+                {isLocked
+                  ? <span style={{ fontSize:20,flexShrink:0 }}>🔒</span>
+                  : vid
+                    ? <button onClick={()=>setActiveVideo(vid)} style={{ padding:"5px 14px",background:"#6366f1",color:"#fff",border:"none",borderRadius:7,cursor:"pointer",fontSize:12,fontWeight:600,flexShrink:0 }}>▶ Play</button>
+                    : null
+                }
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ── Main Page ─────────────────────────────────────────────────
+export default function MyCoursesPage() {
+  const { user } = useAuth();
+  const [enrollments,  setEnrollments]  = useState([]);
+  const [loading,      setLoading]      = useState(true);
+  const [error,        setError]        = useState("");
+  const [activeVideo,  setActiveVideo]  = useState(null);
+  const [openEnrollment, setOpenEnrollment] = useState(null);
+  const [accessStatus, setAccessStatus] = useState(user?.accessStatus || "INACTIVE");
+
+  useEffect(() => {
+    // Fresh accessStatus
+    API.get("/auth/me")
+      .then(r => setAccessStatus((r.data.user||r.data)?.accessStatus||"INACTIVE"))
+      .catch(()=>{});
+    // My enrollments
+    API.get("/student/courses")
+      .then(r => setEnrollments(r.data.data||[]))
+      .catch(err => setError(err?.response?.data?.message||"Failed to load"))
+      .finally(()=>setLoading(false));
+  }, []);
+
+  // INACTIVE = everything locked
+  // TRIAL = demo unlocked but BATCH still locked (need full payment)
+  // ACTIVE = everything unlocked
+  const isLocked = accessStatus !== "ACTIVE";
 
   return (
     <div>
+      {activeVideo && !isLocked && <VideoModal videoId={activeVideo} onClose={()=>setActiveVideo(null)} />}
+      {openEnrollment && (
+        <CourseVideosModal
+          enrollment={openEnrollment}
+          isLocked={isLocked}
+          onClose={()=>setOpenEnrollment(null)}
+        />
+      )}
+
+      {/* Header */}
       <div className="admin-page-header">
-        <div><h1>My Courses</h1><p>Your enrolled programs</p></div>
-        <span className="admin-pill">{enrollments?.length ?? 0} enrolled</span>
+        <div><h1>My Batches</h1><p>Your enrolled programs</p></div>
+        <div style={{ display:"flex",gap:8,alignItems:"center" }}>
+          <span style={{ padding:"5px 14px",borderRadius:99,fontSize:12,fontWeight:700,
+            background:isLocked?"#fee2e2":"#dcfce7",color:isLocked?"#dc2626":"#16a34a" }}>
+            {isLocked?"🔒 Locked":"✅ Unlocked"}
+          </span>
+          <span className="admin-pill">{enrollments.length} enrolled</span>
+        </div>
       </div>
 
-      {loading && <p style={{color:"#6b7280"}}>Loading courses...</p>}
-      {error && <p style={{color:"#ef4444"}}>{error}</p>}
-
-      {/* Video Player Modal */}
-      {activeVideo && (
-        <div style={{position:"fixed",inset:0,background:"rgba(0,0,0,0.8)",zIndex:1000,display:"flex",alignItems:"center",justifyContent:"center"}}
-          onClick={() => setActiveVideo(null)}>
-          <div style={{background:"#000",borderRadius:12,overflow:"hidden",width:"min(90vw,900px)",aspectRatio:"16/9",position:"relative"}}
-            onClick={e => e.stopPropagation()}>
-            <button onClick={() => setActiveVideo(null)}
-              style={{position:"absolute",top:8,right:12,background:"transparent",border:"none",color:"#fff",fontSize:24,cursor:"pointer",zIndex:10}}>✕</button>
-            <iframe
-              width="100%" height="100%"
-              src={`https://www.youtube.com/embed/${activeVideo}`}
-              title="Course Video" frameBorder="0"
-              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-              allowFullScreen style={{display:"block"}}
-            />
-          </div>
+      {/* Lock banner */}
+      {isLocked && (
+        <div style={{ background:"#fef9c3",border:"1px solid #fde68a",borderRadius:12,padding:"14px 18px",marginBottom:24,fontSize:14,color:"#92400e",fontWeight:600 }}>
+          🔒 Course content is locked. Complete your initial payment to unlock all videos.
         </div>
       )}
 
-      <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(300px,1fr))",gap:20,marginTop:8}}>
-        {enrollments?.map(enr => {
-          const course = enr.batch?.course;
-          const trainer = enr.batch?.trainer;
-          const videoId = getYouTubeEmbedId(course?.youtubeLink);
+      {loading && (
+        <div style={{ display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(300px,1fr))",gap:20 }}>
+          {[1,2,3].map(i=><div key={i} style={{ background:"#f3f4f6",borderRadius:14,height:300 }} />)}
+        </div>
+      )}
+      {error && <p style={{ color:"#ef4444" }}>{error}</p>}
+
+      {!loading && !enrollments.length && (
+        <div style={{ textAlign:"center",padding:"60px 20px",color:"#9ca3af" }}>
+          <div style={{ fontSize:48,marginBottom:12 }}>📚</div>
+          <p style={{ margin:0,fontWeight:600 }}>Not enrolled in any batch yet.</p>
+          <p style={{ fontSize:13,marginTop:6 }}>Contact your counselor to get enrolled.</p>
+        </div>
+      )}
+
+      {/* Course Cards — same as Demo Courses */}
+      <div style={{ display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(300px,1fr))",gap:20 }}>
+        {enrollments.map(enr => {
+          const course  = enr.batch?.course;
+          const batch   = enr.batch;
+          const trainer = batch?.trainer;
+          if (!course || !batch) return null;
+
+          const allVids = [
+            ...(course.youtubeLink?[{url:course.youtubeLink}]:[]),
+            ...(course.videos||[]),
+          ];
+          const firstVid   = getYouTubeId(allVids[0]?.url);
+          const videoCount = allVids.length;
+
           return (
-            <div key={enr._id} style={{background:"#fff",borderRadius:12,border:"1px solid #e5e7eb",overflow:"hidden",boxShadow:"0 1px 4px rgba(0,0,0,0.06)"}}>
+            <div key={enr._id}
+              style={{ background:"#fff",borderRadius:14,border:"1px solid #e5e7eb",overflow:"hidden",boxShadow:"0 2px 8px rgba(0,0,0,0.07)",transition:"box-shadow 0.2s" }}
+              onMouseEnter={e=>e.currentTarget.style.boxShadow="0 4px 20px rgba(99,102,241,0.15)"}
+              onMouseLeave={e=>e.currentTarget.style.boxShadow="0 2px 8px rgba(0,0,0,0.07)"}>
+
               {/* Thumbnail */}
-              <div style={{background:"linear-gradient(135deg,#6366f1,#8b5cf6)",height:140,display:"flex",alignItems:"center",justifyContent:"center",position:"relative",cursor: videoId ? "pointer":"default"}}
-                onClick={() => videoId && setActiveVideo(videoId)}>
-                {videoId
-                  ? <img src={`https://img.youtube.com/vi/${videoId}/hqdefault.jpg`} alt="thumbnail" style={{width:"100%",height:"100%",objectFit:"cover",opacity:0.85}} />
-                  : <span style={{color:"#fff",fontSize:40,opacity:0.4}}>📚</span>
-                }
-                {videoId && (
-                  <div style={{position:"absolute",inset:0,display:"flex",alignItems:"center",justifyContent:"center"}}>
-                    <div style={{width:52,height:52,background:"rgba(255,255,255,0.9)",borderRadius:"50%",display:"flex",alignItems:"center",justifyContent:"center",fontSize:20}}>▶</div>
+              <div onClick={()=>!isLocked&&firstVid&&setActiveVideo(firstVid)}
+                style={{ position:"relative",aspectRatio:"16/9",background:"linear-gradient(135deg,#6366f1,#8b5cf6)",cursor:isLocked?"not-allowed":firstVid?"pointer":"default",overflow:"hidden" }}>
+                {firstVid && (
+                  <img src={`https://img.youtube.com/vi/${firstVid}/hqdefault.jpg`} alt={course.title}
+                    style={{ width:"100%",height:"100%",objectFit:"cover",display:"block",filter:isLocked?"brightness(0.3) grayscale(0.5)":"none" }}
+                    onError={e=>{e.target.style.display="none"}} />
+                )}
+                {/* Play overlay — unlocked */}
+                {!isLocked && firstVid && (
+                  <div style={{ position:"absolute",inset:0,display:"flex",alignItems:"center",justifyContent:"center",background:"rgba(0,0,0,0.15)" }}>
+                    <div style={{ width:52,height:52,background:"rgba(255,255,255,0.92)",borderRadius:"50%",display:"flex",alignItems:"center",justifyContent:"center",fontSize:22,boxShadow:"0 2px 12px rgba(0,0,0,0.3)" }}>▶</div>
                   </div>
                 )}
+                {/* Lock overlay */}
+                {isLocked && (
+                  <div style={{ position:"absolute",inset:0,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",gap:6 }}>
+                    <span style={{ fontSize:36 }}>🔒</span>
+                    <p style={{ color:"#fff",fontSize:12,fontWeight:700,margin:0 }}>Locked</p>
+                  </div>
+                )}
+                {/* Video count badge */}
+                {videoCount>0 && (
+                  <div style={{ position:"absolute",top:8,left:8,background:"rgba(0,0,0,0.7)",color:"#fff",borderRadius:6,padding:"2px 8px",fontSize:11,fontWeight:700 }}>
+                    {videoCount} {videoCount===1?"video":"videos"}
+                  </div>
+                )}
+                {/* Enrollment status badge */}
+                <div style={{ position:"absolute",top:8,right:8,padding:"3px 10px",borderRadius:99,fontSize:10,fontWeight:700,
+                  background:enr.status==="ACTIVE"?"#dcfce7":enr.status==="COMPLETED"?"#dbeafe":"#fee2e2",
+                  color:enr.status==="ACTIVE"?"#166534":enr.status==="COMPLETED"?"#1d4ed8":"#dc2626" }}>
+                  {enr.status}
+                </div>
               </div>
-              <div style={{padding:"16px"}}>
-                <h3 style={{margin:"0 0 6px",fontSize:16,fontWeight:700,color:"#111827"}}>{course?.title || "Course"}</h3>
-                <div style={{color:"#6b7280",fontSize:13,marginBottom:4}}>
-                  Trainer: <strong>{trainer?.name || "TBA"}</strong>
+
+              {/* Card content */}
+              <div style={{ padding:"16px 18px" }}>
+                <h3 style={{ margin:"0 0 4px",fontSize:15,fontWeight:700,color:"#111827" }}>{course.title}</h3>
+
+                <div style={{ fontSize:12,color:"#6b7280",marginBottom:2 }}>
+                  📦 Batch: <strong style={{ color:"#374151" }}>{batch.name}</strong>
                 </div>
-                <div style={{color:"#6b7280",fontSize:13,marginBottom:4}}>
-                  Batch: <strong>{enr.batch?.name || "—"}</strong>
+                {trainer && (
+                  <div style={{ fontSize:12,color:"#6b7280",marginBottom:2 }}>
+                    👤 Trainer: <strong style={{ color:"#374151" }}>{trainer.name}</strong>
+                  </div>
+                )}
+                <div style={{ fontSize:12,color:"#6b7280",marginBottom:14 }}>
+                  ⏱ Duration: {course.durationInMonths} months
+                  {course.fees && <span style={{ marginLeft:10 }}>💰 ₹{course.fees?.toLocaleString("en-IN")}</span>}
                 </div>
-                <div style={{color:"#6b7280",fontSize:13,marginBottom:12}}>
-                  Duration: {course?.durationInMonths} months
-                </div>
-                <div style={{display:"flex",gap:8,alignItems:"center"}}>
-                  <span style={{padding:"3px 10px",borderRadius:99,fontSize:11,fontWeight:600,
-                    background: enr.status==="ACTIVE"?"#dcfce7":enr.status==="COMPLETED"?"#dbeafe":"#fee2e2",
-                    color: enr.status==="ACTIVE"?"#166534":enr.status==="COMPLETED"?"#1d4ed8":"#dc2626"}}>
-                    {enr.status}
-                  </span>
-                  {videoId && (
-                    <button onClick={() => setActiveVideo(videoId)}
-                      style={{padding:"4px 14px",borderRadius:6,background:"#6366f1",color:"#fff",border:"none",cursor:"pointer",fontSize:12}}>
+
+                {/* Buttons — same as Demo Courses */}
+                <div style={{ display:"flex",gap:8,flexWrap:"wrap" }}>
+                  {!isLocked && firstVid && (
+                    <button onClick={()=>setActiveVideo(firstVid)}
+                      style={{ padding:"6px 14px",borderRadius:7,background:"#6366f1",color:"#fff",border:"none",cursor:"pointer",fontSize:12,fontWeight:600 }}>
                       ▶ Watch
                     </button>
                   )}
+                  <button onClick={()=>setOpenEnrollment(enr)}
+                    style={{ padding:"6px 14px",borderRadius:7,background:isLocked?"#fff7ed":"#f0fdf4",color:isLocked?"#c2410c":"#16a34a",border:`1px solid ${isLocked?"#fed7aa":"#86efac"}`,cursor:"pointer",fontSize:12,fontWeight:600 }}>
+                    {isLocked?"🔒":"🎬"} Videos ({videoCount})
+                  </button>
                 </div>
+
+                {isLocked && (
+                  <div style={{ marginTop:10,fontSize:11,color:"#f59e0b",fontWeight:700 }}>
+                    Complete initial payment to unlock
+                  </div>
+                )}
               </div>
             </div>
           );
         })}
       </div>
-      {!loading && !enrollments?.length && (
-        <div style={{textAlign:"center",padding:"60px 20px",color:"#6b7280"}}>
-          <div style={{fontSize:48,marginBottom:12}}>📚</div>
-          <p>You are not enrolled in any course yet.</p>
-          <p style={{fontSize:13}}>Please contact your counselor to get enrolled.</p>
-        </div>
-      )}
     </div>
   );
 }

@@ -1,4 +1,12 @@
 import DemoCourse from "./demo-course.model.js";
+import mongoose from "mongoose";
+
+// Helper: safely get createdBy — skip "admin-env" string
+const getCreatedBy = (userId) => {
+  if (!userId || userId === "admin-env") return undefined;
+  if (!mongoose.Types.ObjectId.isValid(userId)) return undefined;
+  return userId;
+};
 
 export const getAllDemoCourses = async (req, res) => {
   try {
@@ -11,7 +19,11 @@ export const getAllDemoCourses = async (req, res) => {
 
 export const createDemoCourse = async (req, res) => {
   try {
-    const course = await DemoCourse.create({ ...req.body, createdBy: req.user?._id });
+    const createdBy = getCreatedBy(req.user?._id || req.user?.id);
+    const courseData = { ...req.body };
+    if (createdBy) courseData.createdBy = createdBy;
+
+    const course = await DemoCourse.create(courseData);
     res.status(201).json({ success: true, data: course });
   } catch (error) {
     res.status(400).json({ success: false, message: error.message });

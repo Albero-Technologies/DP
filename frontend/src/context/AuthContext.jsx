@@ -1,66 +1,57 @@
 import { createContext, useState, useEffect } from "react";
-import { loginUser, registerUser, logoutUser, getMe } from "../api/auth.api";
+import API, { setToken, clearToken } from "../api/axiosInstance";
 
 export const AuthContext = createContext(null);
 
+const TOKEN_KEY = "token";
+const USER_KEY  = "user";
+
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(() => {
-    // Instantly load user from localStorage — no API call needed on every load
     try {
-      const saved = localStorage.getItem("user");
+      const saved = localStorage.getItem(USER_KEY);
       return saved ? JSON.parse(saved) : null;
-    } catch {
-      return null;
-    }
+    } catch { return null; }
   });
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
+  const [error,   setError]   = useState(null);
 
-  // Only verify token if it exists AND we don't already have fresh user data
-  // Use a flag so this only runs once per session, not on every navigation
+  // Silent background token verify on mount
   useEffect(() => {
-    const token = localStorage.getItem("token");
-    const savedUser = localStorage.getItem("user");
-
-    // If no token, nothing to verify
+    const token = localStorage.getItem(TOKEN_KEY);
     if (!token) return;
-
-    // If we already have user data in localStorage, trust it immediately
-    // Only do a background refresh to keep it fresh — don't block the UI
-    if (savedUser) {
-      // Silent background refresh (non-blocking)
-      getMe()
-        .then((res) => {
-          setUser(res.data);
-          localStorage.setItem("user", JSON.stringify(res.data));
-        })
-        .catch(() => {
-          // Token expired — clear and redirect
-          logoutUser();
-          setUser(null);
-        });
-      return;
-    }
-
-    // No saved user but token exists — fetch user (first load after login)
-    getMe()
-      .then((res) => {
-        setUser(res.data);
-        localStorage.setItem("user", JSON.stringify(res.data));
+    API.get("/auth/me")
+      .then(res => {
+        const u = res.data.user || res.data;
+        setUser(u);
+        localStorage.setItem(USER_KEY, JSON.stringify(u));
       })
       .catch(() => {
-        logoutUser();
+        localStorage.removeItem(TOKEN_KEY);
+        localStorage.removeItem(USER_KEY);
+        clearToken();
         setUser(null);
       });
-  }, []); // Only on mount
+  }, []);
 
   const login = async (email, password) => {
     setLoading(true);
     setError(null);
     try {
-      const res = await loginUser({ email, password });
-      setUser(res.data);
-      return res;
+      // Clear old session
+      localStorage.removeItem(TOKEN_KEY);
+      localStorage.removeItem(USER_KEY);
+      clearToken();
+
+      const res = await API.post("/auth/login", { email, password });
+      const { token, user: userData } = res.data;
+
+      localStorage.setItem(TOKEN_KEY, token);
+      localStorage.setItem(USER_KEY, JSON.stringify(userData));
+      setToken(token);
+      setUser(userData);
+
+      return { data: userData };
     } catch (err) {
       const msg = err.response?.data?.message || "Login failed. Check your credentials.";
       setError(msg);
@@ -70,23 +61,10 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  const register = async (userData) => {
-    setLoading(true);
-    setError(null);
-    try {
-      const res = await registerUser(userData);
-      return res;
-    } catch (err) {
-      const msg = err.response?.data?.message || "Registration failed.";
-      setError(msg);
-      throw err;
-    } finally {
-      setLoading(false);
-    }
-  };
-
   const logout = () => {
-    logoutUser();
+    localStorage.removeItem(TOKEN_KEY);
+    localStorage.removeItem(USER_KEY);
+    clearToken();
     setUser(null);
   };
 
@@ -97,9 +75,11 @@ export const AuthProvider = ({ children }) => {
   const roleRoute   = user?.role ? user.role.toLowerCase() : null;
 
   return (
-    <AuthContext.Provider
-      value={{ user, loading, error, login, register, logout, isAdmin, isTrainer, isCounselor, isStudent, roleRoute }}
-    >
+    <AuthContext.Provider value={{
+      user, loading, error,
+      login, logout,
+      isAdmin, isTrainer, isCounselor, isStudent, roleRoute,
+    }}>
       {children}
     </AuthContext.Provider>
   );

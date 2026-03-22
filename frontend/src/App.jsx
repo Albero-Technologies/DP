@@ -4,13 +4,15 @@ import ProtectedRoute from "./context/ProtectedRoute";
 import ScrollToTop from "./components/ScrollToTop";
 
 // Public
-import HomePage from "./pages/HomePage";
-import NotFound from "./pages/NotFound";
+import HomePage           from "./pages/HomePage";
+import NotFound           from "./pages/NotFound";
 import AnimatedBackground from "./components/AnimatedBackground";
-import Aboutus from "./components/Aboutus";
-import SignInPage from "./pages/auth/SignInPage";
-import SignUpPage from "./pages/auth/SignUpPage";
-import ForgotPasswordPage from "./pages/auth/ForgotPasswordPage";
+import Aboutus            from "./components/Aboutus";
+import SignInPage         from "./pages/auth/SignInPage";
+// SignUpPage REMOVED
+
+// Public enrollment form (counselor unique link)
+import EnrollmentFormPage from "./pages/public/EnrollmentFormPage";
 
 // Programs
 import DataAnalyticsPage       from "./pages/programs/DataAnalyticsPage";
@@ -32,30 +34,36 @@ import StudentsPage     from "./pages/admin/StudentsPage";
 import PaymentsPage     from "./pages/admin/PaymentsPage";
 import DemoCoursesPage  from "./pages/admin/DemoCoursesPage";
 import StaffPage        from "./pages/admin/StaffPage";
+// Reports REMOVED
 
-// Trainer pages  ← TrainerDashboardPage added here
+// Trainer pages
 import TrainerDashboardPage from "./pages/trainer/DashboardPage";
 import TrainerBatchesPage   from "./pages/trainer/BatchesPage";
-import TrainerStudentsPage  from "./pages/trainer/StudentsPage";
 import TrainerSessionsPage  from "./pages/trainer/SessionsPage";
+// TrainerStudentsPage REMOVED
 
-// Counselor pages
-import CounselorStudentsPage from "./pages/counselor/StudentsPage";
-import FollowUpsPage         from "./pages/counselor/FollowUpsPage";
-import BatchAssignPage       from "./pages/counselor/BatchAssignPage";
-import PaymentApprovalsPage  from "./pages/counselor/PaymentApprovalsPage";
-import SupportTicketsPage    from "./pages/counselor/SupportTicketsPage";
+// Counselor pages — using existing files
+import CounselorDashboard      from "./pages/counselor/DashboardPage";
+import CounselorStudentsPage  from "./pages/counselor/StudentsPage";
+import BatchAssignPage        from "./pages/counselor/BatchAssignPage";
+import PaymentApprovalsPage   from "./pages/counselor/PaymentApprovalsPage";
+import SupportTicketsPage     from "./pages/counselor/SupportTicketsPage";
+// NEW counselor pages
+import EnrollmentLinkPage     from "./pages/counselor/EnrollmentLinkPage";
+import PaymentRemindersPage   from "./pages/counselor/PaymentRemindersPage";
+// FollowUpsPage REMOVED, Reports REMOVED
 
 // Student pages
-import StudentDashboard from "./pages/student/DashboardContent";
+import StudentDashboard    from "./pages/student/DashboardContent";
 import MyCoursesPage       from "./pages/student/MyCoursesPage";
 import StudentPaymentsPage from "./pages/student/PaymentsPage";
 import CertificatesPage    from "./pages/student/CertificatesPage";
 import SupportPage         from "./pages/student/SupportPage";
+import DemoCoursesSection  from "./pages/student/DemoCoursesSection";
 
 export default function App() {
   const location = useLocation();
-  const hideBackground = ["/admin","/trainer","/counselor","/student"].some(p =>
+  const hideBackground = ["/admin", "/trainer", "/counselor", "/student"].some(p =>
     location.pathname.startsWith(p)
   );
 
@@ -69,8 +77,10 @@ export default function App() {
           <Route path="/"                element={<HomePage />} />
           <Route path="/about"           element={<Aboutus />} />
           <Route path="/signin"          element={<SignInPage />} />
-          <Route path="/signup"          element={<SignUpPage />} />
-          <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+          <Route path="/signup"          element={<Navigate to="/signin" replace />} />
+
+          {/* ── Counselor public enrollment form ── */}
+          <Route path="/enroll/:counselorId" element={<EnrollmentFormPage />} />
 
           {/* ── Programs ── */}
           <Route path="/programs/data-analytics"                element={<DataAnalyticsPage />} />
@@ -82,7 +92,7 @@ export default function App() {
 
           {/* ── ADMIN ── */}
           <Route path="/admin" element={<ProtectedRoute roles={["ADMIN"]}><AdminLayout role="admin" /></ProtectedRoute>}>
-            <Route index         element={<Navigate to="/admin/dashboard" replace />} />
+            <Route index               element={<Navigate to="/admin/dashboard" replace />} />
             <Route path="dashboard"    element={<DashboardContent />} />
             <Route path="courses"      element={<CoursesPage />} />
             <Route path="batches"      element={<BatchesPage />} />
@@ -90,35 +100,33 @@ export default function App() {
             <Route path="payments"     element={<PaymentsPage />} />
             <Route path="demo-courses" element={<DemoCoursesPage />} />
             <Route path="staff"        element={<StaffPage />} />
-            <Route path="reports"      element={<AdminPlaceholder title="Reports" />} />
           </Route>
 
           {/* ── TRAINER ── */}
           <Route path="/trainer" element={<ProtectedRoute roles={["TRAINER"]}><AdminLayout role="trainer" /></ProtectedRoute>}>
-            <Route index        element={<Navigate to="/trainer/dashboard" replace />} />
-            <Route path="dashboard" element={<TrainerDashboardPage />} />  {/* ← fixed */}
+            <Route index            element={<Navigate to="/trainer/dashboard" replace />} />
+            <Route path="dashboard" element={<TrainerDashboardPage />} />
             <Route path="cohorts"   element={<TrainerBatchesPage />} />
-            <Route path="students"  element={<TrainerStudentsPage />} />
             <Route path="sessions"  element={<TrainerSessionsPage />} />
-            <Route path="reports"   element={<AdminPlaceholder title="Reports" />} />
           </Route>
 
           {/* ── COUNSELOR ── */}
           <Route path="/counselor" element={<ProtectedRoute roles={["COUNSELOR"]}><AdminLayout role="counselor" /></ProtectedRoute>}>
-            <Route index         element={<Navigate to="/counselor/dashboard" replace />} />
-            <Route path="dashboard"  element={<DashboardContent />} />
-            <Route path="students"   element={<CounselorStudentsPage />} />
-            <Route path="batches"    element={<BatchAssignPage />} />
-            <Route path="follow-ups" element={<FollowUpsPage />} />
-            <Route path="payments"   element={<PaymentApprovalsPage />} />
-            <Route path="support"    element={<SupportTicketsPage />} />
-            <Route path="reports"    element={<AdminPlaceholder title="Reports" />} />
+            <Route index                  element={<Navigate to="/counselor/dashboard" replace />} />
+            <Route path="dashboard"       element={<CounselorDashboard />} />
+            <Route path="students"        element={<CounselorStudentsPage />} />
+            <Route path="enrollment-link" element={<EnrollmentLinkPage />} />
+            <Route path="batches"         element={<BatchAssignPage />} />
+            <Route path="payments"        element={<PaymentApprovalsPage />} />
+            <Route path="reminders"       element={<PaymentRemindersPage />} />
+            <Route path="support"         element={<SupportTicketsPage />} />
           </Route>
 
           {/* ── STUDENT ── */}
           <Route path="/student" element={<ProtectedRoute roles={["STUDENT"]}><AdminLayout role="student" /></ProtectedRoute>}>
-            <Route index          element={<Navigate to="/student/dashboard" replace />} />
+            <Route index               element={<Navigate to="/student/dashboard" replace />} />
             <Route path="dashboard"    element={<StudentDashboard />} />
+            <Route path="demo-courses" element={<DemoCoursesSection />} />
             <Route path="courses"      element={<MyCoursesPage />} />
             <Route path="payments"     element={<StudentPaymentsPage />} />
             <Route path="certificates" element={<CertificatesPage />} />
