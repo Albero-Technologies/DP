@@ -1,40 +1,56 @@
 import { NavLink, useNavigate } from "react-router-dom";
 import useAuth from "../../context/useAuth";
 
+import {
+  LayoutDashboard,
+  BookOpen,
+  CalendarDays,
+  Users,
+  CreditCard,
+  PlayCircle,
+  UserCog,
+  Layers,
+  Clock,
+  Link,
+  Bell,
+  Headphones,
+  Award
+} from "lucide-react";
+
 const navConfig = {
   admin: [
-    { path: "dashboard",    label: "Dashboard",    icon: "▦"  },
-    { path: "courses",      label: "Courses",      icon: "📚" },
-    { path: "batches",      label: "Batches",      icon: "🗓" },
-    { path: "students",     label: "Students",     icon: "👥" },
-    { path: "payments",     label: "Payments",     icon: "💳" },
-    { path: "demo-courses", label: "Demo Courses", icon: "▶"  },
-    { path: "staff",        label: "Staff",        icon: "👤" },
-    // Reports REMOVED
+    { path: "dashboard",    label: "Dashboard",    icon: LayoutDashboard },
+    { path: "courses",      label: "Courses",      icon: BookOpen },
+    { path: "batches",      label: "Batches",      icon: CalendarDays },
+    { path: "students",     label: "Students",     icon: Users },
+    { path: "payments",     label: "Payments",     icon: CreditCard },
+    { path: "demo-courses", label: "Demo Courses", icon: PlayCircle },
+    { path: "staff",        label: "Staff",        icon: UserCog },
   ],
+
   trainer: [
-    { path: "dashboard", label: "Dashboard", icon: "▦"  },
-    { path: "cohorts",   label: "Cohorts",   icon: "🗓" },
-    { path: "sessions",  label: "Sessions",  icon: "🕐" },
-    // Students + Reports REMOVED
+    { path: "dashboard", label: "Dashboard", icon: LayoutDashboard },
+    { path: "cohorts",   label: "Cohorts",   icon: Layers },
+    { path: "sessions",  label: "Sessions",  icon: Clock },
   ],
+
   counselor: [
-    { path: "dashboard",       label: "Dashboard",       icon: "▦"  },
-    { path: "students",        label: "Students",        icon: "👥" },
-    { path: "enrollment-link", label: "Enrollment Link", icon: "🔗" },
-    { path: "batches",         label: "Batch & Sessions",icon: "🗓" },
-    { path: "payments",        label: "Payments",        icon: "💳" },
-    { path: "reminders",       label: "Reminders",       icon: "⏰" },
-    { path: "support",         label: "Support",         icon: "🎧" },
-    // Follow-ups + Reports REMOVED
+    { path: "dashboard",       label: "Dashboard",       icon: LayoutDashboard },
+    { path: "students",        label: "Students",        icon: Users },
+    { path: "enrollment-link", label: "Enrollment Link", icon: Link },
+    { path: "batches",         label: "Batch & Sessions",icon: CalendarDays },
+    { path: "payments",        label: "Payments",        icon: CreditCard },
+    { path: "reminders",       label: "Reminders",       icon: Bell },
+    { path: "support",         label: "Support",         icon: Headphones },
   ],
+
   student: [
-    { path: "dashboard",    label: "Dashboard",    icon: "▦"  },
-    { path: "demo-courses", label: "Demo Courses", icon: "▶"  },
-    { path: "courses",      label: "My Batches",   icon: "📚" },
-    { path: "payments",     label: "Payments",     icon: "💳" },
-    { path: "certificates", label: "Certificates", icon: "🏆" },
-    { path: "support",      label: "Support",      icon: "🎧" },
+    { path: "dashboard",    label: "Dashboard",    icon: LayoutDashboard },
+    { path: "demo-courses", label: "Demo Courses", icon: PlayCircle },
+    { path: "courses",      label: "My Batches",   icon: BookOpen },
+    { path: "payments",     label: "Payments",     icon: CreditCard },
+    { path: "certificates", label: "Certificates", icon: Award },
+    { path: "support",      label: "Support",      icon: Headphones },
   ],
 };
 
@@ -62,22 +78,32 @@ export default function AdminSidebar({ role = "admin" }) {
       </div>
 
       <nav className="admin-nav">
-        {items.map(link => (
-          <NavLink
-            key={link.path}
-            to={`/${r}/${link.path}`}
-            className={({ isActive }) => `admin-nav-link${isActive ? " active" : ""}`}
-          >
-            <span style={{ fontSize: 16, minWidth: 20 }}>{link.icon}</span>
-            {link.label}
-          </NavLink>
-        ))}
+        {items.map(link => {
+          const Icon = link.icon;
+          return (
+            <NavLink
+              key={link.path}
+              to={`/${r}/${link.path}`}
+              className={({ isActive }) =>
+                `admin-nav-link${isActive ? " active" : ""}`
+              }
+            >
+              <span style={{ minWidth: 20, display: "flex", alignItems: "center" }}>
+                <Icon size={16} />
+              </span>
+              {link.label}
+            </NavLink>
+          );
+        })}
       </nav>
 
       <button
         className="admin-logout"
         type="button"
-        onClick={() => { logout(); navigate("/signin"); }}
+        onClick={() => {
+          logout();
+          navigate("/signin");
+        }}
       >
         ← Logout
       </button>
