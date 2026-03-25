@@ -96,7 +96,6 @@ export default function SignInPage() {
           background: "#f8fafc", borderRadius: 8, padding: "12px 14px",
           fontSize: 12, color: "#6b7280", border: "1px solid #e5e7eb",
         }}>
-          <strong>Admin:</strong> Use credentials from your <code>.env</code> file.<br />
           <strong>Counselors / Trainers / Students:</strong> Use credentials provided by your Admin or Counselor.
         </div>
 

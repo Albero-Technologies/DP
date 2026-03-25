@@ -16,10 +16,10 @@ function loadCashfreeSDK(env) {
 }
 
 const PAYMENT_MODES = [
-  { id: "upi",    label: "UPI",         icon: "📱", desc: "Google Pay, PhonePe, Paytm", methods: "upi" },
-  { id: "card",   label: "Debit/Credit Card", icon: "💳", desc: "Visa, Mastercard, RuPay", methods: "cc,dc" },
-  { id: "nb",     label: "Net Banking",  icon: "🏦", desc: "All major banks", methods: "nb" },
-  { id: "wallet", label: "Wallet",       icon: "👛", desc: "Paytm, Amazon Pay", methods: "wallet" },
+  { id: "upi",    label: "UPI",         icon: "", desc: "Google Pay, PhonePe, Paytm", methods: "upi" },
+  { id: "card",   label: "Debit/Credit Card", icon: "", desc: "Visa, Mastercard, RuPay", methods: "cc,dc" },
+  { id: "nb",     label: "Net Banking",  icon: "", desc: "All major banks", methods: "nb" },
+  { id: "wallet", label: "Wallet",       icon: "", desc: "Paytm, Amazon Pay", methods: "wallet" },
 ];
 
 export default function CashfreeCheckout({ invoice, onSuccess, onClose }) {

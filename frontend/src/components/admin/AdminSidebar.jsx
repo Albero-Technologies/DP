@@ -1,5 +1,6 @@
 import { NavLink, useNavigate } from "react-router-dom";
 import useAuth from "../../context/useAuth";
+import { LogOut } from "lucide-react";
 
 import {
   LayoutDashboard,
@@ -61,18 +62,18 @@ const roleLabels = {
   student: "Student Portal",
 };
 
-export default function AdminSidebar({ role = "admin" }) {
+export default function AdminSidebar({ role = "admin", isMobileOpen = false }) {
   const navigate = useNavigate();
   const { logout } = useAuth();
   const r = role.toLowerCase();
   const items = navConfig[r] || navConfig.admin;
 
   return (
-    <aside className="admin-sidebar">
+    <aside className={`admin-sidebar ${isMobileOpen ? "open" : ""}`}>
       <div className="admin-logo">
-        <div className="admin-logo-mark">E</div>
+        <div className="admin-logo-mark">D</div>
         <div>
-          <strong>EdTech CRM</strong>
+          <strong>Data Prenure</strong>
           <span>{roleLabels[r]}</span>
         </div>
       </div>
@@ -88,9 +89,7 @@ export default function AdminSidebar({ role = "admin" }) {
                 `admin-nav-link${isActive ? " active" : ""}`
               }
             >
-              <span style={{ minWidth: 20, display: "flex", alignItems: "center" }}>
-                <Icon size={16} />
-              </span>
+              <Icon size={18} />
               {link.label}
             </NavLink>
           );
@@ -105,7 +104,8 @@ export default function AdminSidebar({ role = "admin" }) {
           navigate("/signin");
         }}
       >
-        ← Logout
+        <LogOut size={18} />
+        Logout
       </button>
     </aside>
   );

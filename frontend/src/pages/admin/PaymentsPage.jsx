@@ -40,7 +40,7 @@ function generateInvoice(payment) {
 </style></head><body>
   <div class="header">
     <div>
-      <div class="brand">EdTech<span>CRM</span></div>
+      <div class="brand">Data<span>Preneur</span></div>
       <div class="invoice-title">PAYMENT INVOICE</div>
     </div>
     <div class="meta">
@@ -74,7 +74,7 @@ function generateInvoice(payment) {
 
   <div class="footer">
     This is a computer-generated invoice. No signature required.<br/>
-    EdTech CRM · Powered by DataPreneur
+    Powered by DataPreneur
   </div>
 </body></html>`;
 

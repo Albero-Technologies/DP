@@ -34,7 +34,7 @@ function generateInvoicePDF(invoice, user) {
     .footer{margin-top:40px;text-align:center;color:#9ca3af;font-size:12px;border-top:1px solid #e5e7eb;padding-top:16px}
   </style></head><body>
   <div class="header">
-    <div><div class="logo">EdTech<span>CRM</span></div><div style="color:#6b7280;font-size:13px;margin-top:4px">Tax Invoice</div></div>
+    <div><div class="logo">Data<span>Preneur</span></div><div style="color:#6b7280;font-size:13px;margin-top:4px">Tax Invoice</div></div>
     <div style="text-align:right">
       <div style="font-weight:700">INV-${invoice._id?.slice(-6).toUpperCase()}</div>
       <div style="color:#6b7280;font-size:13px">Date: ${new Date(invoice.createdAt).toLocaleDateString("en-IN")}</div>
@@ -49,7 +49,7 @@ function generateInvoicePDF(invoice, user) {
     <tr class="total"><td colspan="2">Balance Due</td><td style="color:${invoice.status==="PAID"?"#16a34a":"#dc2626"}">₹${(invoice.totalAmount-invoice.amountPaid)?.toLocaleString("en-IN")}</td></tr>
   </table>
   <div>Status: <span class="status">${invoice.status}</span></div>
-  <div class="footer">EdTech CRM · Thank you for your payment!<br/>This is a computer-generated invoice.</div>
+  <div class="footer">DataPreneur · Thank you for your payment!<br/>This is a computer-generated invoice.</div>
   <script>setTimeout(()=>window.print(),400)</script>
   </body></html>`);
   win.document.close();

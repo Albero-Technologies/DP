@@ -27,16 +27,16 @@ export default function AdminNavbar({ role = "admin" }) {
   const isStudent = (user?.role || role).toUpperCase() === "STUDENT";
 
   useEffect(() => {
-    if (!isStudent) return;
+    if (!user) return;
     loadNotifications();
     const interval = setInterval(loadNotifications, 30000);
     return () => clearInterval(interval);
-  }, [isStudent]);
+  }, [user]);
 
   const loadNotifications = () => {
-    if (!isStudent) return;
-    getStudentNotifications()
-      .then(res => setNotifications(res.data || []))
+    if (!user) return;
+    API.get("/notifications")
+      .then(res => setNotifications(res.data.data || []))
       .catch(() => {});
   };
 
@@ -51,13 +51,13 @@ export default function AdminNavbar({ role = "admin" }) {
   const unread = notifications.filter(n => !n.isRead);
 
   const handleMarkAllRead = async () => {
-    await markAllNotificationsRead();
+    await API.patch("/notifications/mark-all-read");
     loadNotifications();
   };
 
   const handleNotifClick = async (notif) => {
     if (!notif.isRead) {
-      await markNotificationRead(notif._id).catch(() => {});
+      await API.patch(`/notifications/${notif._id}/read`).catch(() => {});
       loadNotifications();
     }
     if (!isPaymentReminder(notif)) setShowNotifs(false);
@@ -158,7 +158,7 @@ export default function AdminNavbar({ role = "admin" }) {
                 )}
               </button>
 
-              {showNotifs && isStudent && (
+              {showNotifs && (
                 <div style={{ position:"absolute",right:0,top:"calc(100% + 8px)",width:360,background:"#fff",borderRadius:14,boxShadow:"0 8px 32px rgba(0,0,0,0.15)",border:"1px solid #e5e7eb",zIndex:200,overflow:"hidden" }}>
                   <div style={{ padding:"14px 16px",borderBottom:"1px solid #f3f4f6",display:"flex",justifyContent:"space-between",alignItems:"center" }}>
                     <strong style={{ fontSize:14 }}>

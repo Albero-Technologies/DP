@@ -71,7 +71,7 @@ export default function PaymentRemindersPage() {
       <p style={s.sub}>Send reminders with course type — invoice auto-generates for student.</p>
 
       <div style={s.formCard}>
-        <h2 style={s.h2}>📤 Send New Reminder</h2>
+        <h2 style={s.h2}>Send New Reminder</h2>
         {error   && <div style={s.error}>{error}</div>}
         {success && <div style={s.successMsg}>{success}</div>}
 

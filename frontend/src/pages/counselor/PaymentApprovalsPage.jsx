@@ -30,7 +30,7 @@ function generateInvoice(payment) {
   .footer{margin-top:40px;text-align:center;font-size:11px;color:#9ca3af;border-top:1px solid #e5e7eb;padding-top:16px}
 </style></head><body>
 <div class="header">
-  <div><div class="brand">EdTech<span>CRM</span></div><div style="font-size:13px;color:#6b7280;margin-top:4px">PAYMENT INVOICE</div></div>
+  <div><div class="brand">Data<span>Preneur</span></div><div style="font-size:13px;color:#6b7280;margin-top:4px">PAYMENT INVOICE</div></div>
   <div class="meta">
     <p>Invoice No: <strong>${invoiceNo}</strong></p>
     <p>Date: <strong>${date}</strong></p>
@@ -56,7 +56,7 @@ function generateInvoice(payment) {
   </div>
   <span class="status">${payment.approvalStatus}</span>
 </div>
-<div class="footer">This is a computer-generated invoice. No signature required.<br/>EdTech CRM · Powered by DataPreneur</div>
+<div class="footer">This is a computer-generated invoice. No signature required.<br/>Powered by DataPreneur</div>
 </body></html>`;
 
   const win = window.open("", "_blank");
